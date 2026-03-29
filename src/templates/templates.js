@@ -255,46 +255,38 @@ function typeD({ partnerLogo, theme = 'light' }) {
 // TYPE E: Week in Blockchains
 // ============================================
 function typeE({ dateRange, cryptoIcons = [], theme = 'light' }) {
-  const bgColor = theme === 'dark' ? 'linear-gradient(180deg, #034638 75%, #012d24 100%)' : '#f5fffd';
-  const textColor = theme === 'dark' ? '#f5fffd' : '#034638';
-  const everstakeLogo = getEverstakeLogo(theme);
-  const dividerColor = theme === 'dark' ? 'rgba(222,232,230,0.12)' : '#dee8e6';
-
-  const blobs = theme === 'light' ? gradientBlobs([
-    { x: -120, y: -120, size: 640, color: 'radial-gradient(circle, rgba(64,193,172,0.45), rgba(130,230,180,0.7))' },
-  ]) : '';
-
-  // Build crypto icons grid (4 cols x 4 rows)
-  const iconsHtml = cryptoIcons.map(icon => {
-    const src = getPartnerLogo(icon);
-    return src ? `<div style="width:100px;height:100px;border-radius:50%;border:2px solid ${dividerColor};display:flex;align-items:center;justify-content:center;background:${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'};">
-      <img src="${src}" style="max-width:60px;max-height:60px;" />
-    </div>` : '';
-  }).join('');
+  const textColor = '#034638';
+  const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
   </style></head><body>
-    <div class="banner" style="background:${bgColor};color:${textColor};">
-      ${blobs}
-      ${gridOverlay(theme)}
+    <div class="banner" style="background:#f5fffd;color:${textColor};">
 
-      <div style="position:absolute;left:800px;top:0;width:2px;height:100%;background:${dividerColor};z-index:2;"></div>
+      <!-- Gradient blob: Figma ellipse 640x640 at (-320,-320) blur 200 -->
+      <div style="
+        position:absolute;
+        left:-320px;top:-320px;
+        width:640px;height:640px;
+        border-radius:50%;
+        filter:blur(200px);
+        z-index:0;
+        background:linear-gradient(180deg, rgba(64,193,172,0.40), rgba(130,230,180,1.0));
+      "></div>
 
-      <img src="${everstakeLogo}" style="position:absolute;top:52px;left:80px;height:32px;z-index:10;" />
+      <!-- Everstake logo: Figma x=56 y=56 h=40 w=250 -->
+      <img src="${everstakeLogo}" style="position:absolute;top:56px;left:56px;height:40px;z-index:10;" />
 
-      <!-- Left: date + title -->
-      <div style="position:absolute;left:80px;bottom:80px;z-index:5;max-width:680px;">
-        <div style="font-weight:500;font-size:26px;margin-bottom:20px;">${dateRange || ''}</div>
+      <!-- Date + title: Figma date at x=56 y=523, title at x=56 y=578 -->
+      <div style="position:absolute;left:56px;top:523px;z-index:5;max-width:654px;">
+        <div style="font-weight:500;font-size:26px;margin-bottom:24px;">${dateRange || ''}</div>
         <div style="font-weight:200;font-size:128px;line-height:1.04;">Week in<br>Blockchains</div>
       </div>
 
-      <!-- Right: crypto icons grid -->
-      ${cryptoIcons.length > 0 ? `
-        <div style="position:absolute;left:840px;top:80px;width:700px;display:grid;grid-template-columns:repeat(4,100px);gap:24px;z-index:5;justify-content:center;align-content:center;height:740px;">
-          ${iconsHtml}
-        </div>
-      ` : ''}
+      <!-- Right: gradient bg (Figma: #40c1ac 20% → #7b9690 50%) + icons -->
+      <div style="position:absolute;left:800px;top:0;width:800px;height:900px;z-index:1;background:linear-gradient(180deg, rgba(64,193,172,0.20), rgba(123,150,144,0.50));">
+        <img src="${imageToBase64(path.join(LOGOS_DIR, 'week-icons-grid.png'))}" style="width:100%;height:100%;object-fit:cover;" />
+      </div>
     </div>
   </body></html>`;
 }
