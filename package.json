@@ -1,0 +1,16 @@
+{
+  "name": "banner-bot",
+  "version": "1.0.0",
+  "description": "Slack bot for automated banner generation from Figma-based templates",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "preview": "node src/preview.js"
+  },
+  "dependencies": {
+    "@slack/bolt": "^4.1.0",
+    "puppeteer": "^23.0.0",
+    "dotenv": "^16.4.0"
+  }
+}
