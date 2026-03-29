@@ -371,6 +371,34 @@ function typeF({ title, subtitle, partnerLogo, rightImage, theme = 'light' }) {
   </body></html>`;
 }
 
+// ============================================
+// Collaboration: everstake x partner — two logos centered
+// Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
+// Center frame: y=325 h=250 (vertically centered in banner)
+// ============================================
+function typeCollaboration({ partnerLogo }) {
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-collaboration.png'));
+  // Everstake logo in #034638 (SVG from Figma Collaboration frame)
+  const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-collab.svg'));
+  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner">
+      <!-- Figma background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Centered logos: everstake x partner (visually equal) -->
+      <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:50px;z-index:5;">
+        <img src="${everstakeLogo}" style="height:86px;width:auto;" />
+        <span style="font-family:'Zalando Sans',sans-serif;font-weight:300;font-size:48px;color:#034638;opacity:0.5;">x</span>
+        ${partnerLogoSrc ? `<img src="${partnerLogoSrc}" style="height:86px;width:auto;" />` : ''}
+      </div>
+    </div>
+  </body></html>`;
+}
+
 // Template registry
 const TEMPLATES = {
   'type-a': {
@@ -414,6 +442,12 @@ const TEMPLATES = {
     description: 'Crypto APR banner: subtitle + title left, logo right',
     render: typeAPR,
     fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'collaboration': {
+    name: 'Collaboration',
+    description: 'Everstake x Partner — two logos centered',
+    render: typeCollaboration,
+    fields: ['partnerLogo'],
   },
 };
 
