@@ -184,31 +184,25 @@ function typeB({ title, subtitle, partnerLogo, theme = 'light' }) {
 }
 
 // ============================================
-// TYPE C: Dark background, centered title
-// Examples: DES-336, DES-337, DES-317, DES-318
+// TYPE C: Text in center (v1–v4)
+// Figma-exported backgrounds (PNG) + text overlay
 // ============================================
-function typeC({ title, subtitle, theme = 'dark' }) {
-  const bgColor = 'linear-gradient(180deg, #034638 75%, #012d24 100%)';
-  const textColor = '#f5fffd';
-  const everstakeLogo = getEverstakeLogo('dark');
-
-  const blobs = gradientBlobs([
-    { x: -150, y: -150, size: 600, color: 'radial-gradient(circle, rgba(64,193,172,0.15), rgba(80,200,170,0.2))' },
-    { x: 1000, y: 400, size: 500, color: 'radial-gradient(circle, rgba(64,193,172,0.1), rgba(80,200,170,0.15))' },
-  ]);
+function typeC({ title, subtitle, variant = 'v1' }) {
+  const isLight = variant === 'v2';
+  const textColor = isLight ? '#034638' : '#f5fffd';
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, `bg-text-center-${variant}.png`));
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
   </style></head><body>
-    <div class="banner" style="background:${bgColor};color:${textColor};">
-      ${blobs}
-      ${gridOverlay('dark')}
+    <div class="banner" style="color:${textColor};">
+      <!-- Figma background (gradients + lines, pixel-perfect) -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <img src="${everstakeLogo}" style="position:absolute;top:52px;left:80px;height:32px;z-index:10;" />
-
-      <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;padding:80px;">
-        ${subtitle ? `<div style="font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:24px;text-align:center;">${subtitle}</div>` : ''}
-        <div style="font-weight:200;font-size:111px;line-height:1.04;text-align:center;max-width:1200px;">${title}</div>
+      <!-- Title: centered between grid lines (y=242..658, x=242..1358) -->
+      <div id="title-container" style="position:absolute;left:262px;top:262px;width:1076px;height:376px;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        ${subtitle ? `<div style="font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:24px;text-align:center;flex-shrink:0;">${subtitle}</div>` : ''}
+        <div id="title" style="font-weight:200;font-size:111px;line-height:1.04;text-align:center;">${title}</div>
       </div>
     </div>
   </body></html>`;

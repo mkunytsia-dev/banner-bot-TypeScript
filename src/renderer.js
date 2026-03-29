@@ -30,8 +30,33 @@ async function renderBanner(templateId, params) {
   await page.setViewport({ width: 1600, height: 900, deviceScaleFactor: 1 });
   await page.setContent(html, { waitUntil: 'networkidle0' });
 
-  // Wait for fonts to load
-  await page.evaluate(() => document.fonts.ready);
+  // Wait for fonts to load, then auto-fit title within container
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+
+    const title = document.getElementById('title');
+    const container = document.getElementById('title-container');
+    if (!title || !container) return;
+
+    const maxH = container.offsetHeight;
+    const maxW = container.offsetWidth;
+    let fontSize = parseInt(window.getComputedStyle(title).fontSize) || 111;
+
+    // Temporarily remove flex centering to get true scroll dimensions
+    const origJustify = container.style.justifyContent;
+    container.style.justifyContent = 'flex-start';
+
+    while (fontSize > 40) {
+      title.style.fontSize = fontSize + 'px';
+      // Force reflow
+      void title.offsetHeight;
+      if (container.scrollHeight <= maxH && title.scrollWidth <= maxW) break;
+      fontSize -= 2;
+    }
+
+    // Restore centering
+    container.style.justifyContent = origJustify;
+  });
 
   const filename = `banner-${templateId}-${Date.now()}.png`;
   const outputPath = path.join(OUTPUT_DIR, filename);
