@@ -209,6 +209,40 @@ function typeC({ title, subtitle, variant = 'v1' }) {
 }
 
 // ============================================
+// APR: Split layout — subtitle + title left, crypto icon right
+// Example: DES-314 (Aptos APR)
+// Figma positions: subtitle x=82 y=513 44px w500, title x=82 y=586 112px w250
+// ============================================
+function typeAPR({ title, subtitle, partnerLogo }) {
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-apr.png'));
+  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner" style="color:#034638;">
+      <!-- Figma background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Subtitle: Figma x=82 y=513, 44px, weight 500, color #7b9690 -->
+      ${subtitle ? `<div style="position:absolute;left:82px;top:513px;z-index:5;font-weight:500;font-size:44px;color:#7b9690;">${subtitle}</div>` : ''}
+
+      <!-- Title: Figma x=82 y=586, 112px, weight 250, max-width 810px -->
+      <div id="title-container" style="position:absolute;left:82px;top:586px;width:810px;height:272px;z-index:5;">
+        <div id="title" style="font-weight:200;font-size:112px;line-height:1.04;color:#034638;">${title}</div>
+      </div>
+
+      <!-- Partner logo on right panel: centered in x=940..1560, y=42..860 -->
+      ${partnerLogoSrc ? `
+        <div style="position:absolute;left:940px;top:42px;width:620px;height:818px;z-index:5;display:flex;align-items:center;justify-content:center;">
+          <img src="${partnerLogoSrc}" style="max-width:400px;max-height:400px;" />
+        </div>
+      ` : ''}
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // TYPE D: Partnership - two logos with "x" between
 // Examples: DES-298 (everstake x Pye)
 // ============================================
@@ -374,6 +408,12 @@ const TEMPLATES = {
     description: 'Split layout with right illustration',
     render: typeF,
     fields: ['title', 'subtitle', 'partnerLogo', 'rightImage', 'theme'],
+  },
+  'apr': {
+    name: 'APR',
+    description: 'Crypto APR banner: subtitle + title left, logo right',
+    render: typeAPR,
+    fields: ['title', 'subtitle', 'partnerLogo'],
   },
 };
 
