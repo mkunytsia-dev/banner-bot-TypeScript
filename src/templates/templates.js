@@ -372,6 +372,50 @@ function typeF({ title, subtitle, partnerLogo, rightImage, theme = 'light' }) {
 }
 
 // ============================================
+// Template 5: About Blockchain — split layout, text left, partner logo right
+// Figma: DES-283 (about blockchain - v1)
+// ============================================
+function template5({ title, subtitle, partnerLogo }) {
+  const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
+  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner" style="background:#f5fffd;color:#034638;">
+
+      <!-- Gradient blob: (-320,-320) 640x640 blur 200px -->
+      <div style="position:absolute;left:-320px;top:-320px;width:640px;height:640px;border-radius:50%;filter:blur(200px);z-index:0;
+        background:linear-gradient(180deg, rgba(64,193,172,0.40), rgba(130,230,180,1.0));"></div>
+
+      <!-- Right panel gradient + pattern (clipped to panel) -->
+      <div style="position:absolute;left:800px;top:0;width:800px;height:900px;z-index:0;overflow:hidden;
+        background:linear-gradient(180deg, rgba(64,193,172,0.20), rgba(123,150,144,0.50));">
+        <img src="${imageToBase64(path.join(LOGOS_DIR, 'pattern-right.svg'))}" style="position:absolute;left:-193px;top:-150px;width:1185px;height:1200px;opacity:0.6;" />
+      </div>
+
+      <!-- Everstake logo: x=56 y=56 h=40 -->
+      <img src="${everstakeLogo}" style="position:absolute;top:56px;left:56px;height:40px;z-index:10;" />
+
+      <!-- Subtitle: x=56 y=580, 20px w500 uppercase -->
+      ${subtitle ? `<div style="position:absolute;left:56px;top:580px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
+
+      <!-- Title: x=56 y=644, 96px w200, max-width 700px with auto-fit -->
+      <div id="title-container" style="position:absolute;left:56px;top:644px;width:700px;height:220px;z-index:5;">
+        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
+      </div>
+
+      <!-- Right side: partner logo centered -->
+      ${partnerLogoSrc ? `
+        <div style="position:absolute;left:800px;top:0;width:800px;height:900px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${partnerLogoSrc}" style="max-width:500px;max-height:300px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // Collaboration: everstake x partner — two logos centered
 // Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
 // Center frame: y=325 h=250 (vertically centered in banner)
@@ -448,6 +492,12 @@ const TEMPLATES = {
     description: 'Everstake x Partner — two logos centered',
     render: typeCollaboration,
     fields: ['partnerLogo'],
+  },
+  'template-5': {
+    name: 'About Blockchain',
+    description: 'Split layout: text left, partner logo right',
+    render: template5,
+    fields: ['title', 'subtitle', 'partnerLogo'],
   },
 };
 
