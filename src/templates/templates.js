@@ -546,6 +546,37 @@ function template8({ title, subtitle, partnerLogo }) {
 }
 
 // ============================================
+// Template 9: Centered layout — logo top, title bottom, grid lines
+// Figma: DES-312 (Ethereum Foundation)
+// ============================================
+function template9({ title, partnerLogo }) {
+  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-9.png'));
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner" style="color:#034638;">
+
+      <!-- Figma background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Partner logo: centered between y=141..351 -->
+      ${partnerLogoSrc ? `
+        <div style="position:absolute;left:0;top:143px;width:1600px;height:208px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${partnerLogoSrc}" style="max-height:80px;width:auto;" />
+        </div>
+      ` : ''}
+
+      <!-- Title: centered between y=353..757, x=316, max-width 968 -->
+      <div id="title-container" style="position:absolute;left:316px;top:393px;width:968px;height:340px;z-index:5;display:flex;align-items:center;justify-content:center;">
+        <div id="title" style="font-weight:200;font-size:88px;line-height:1.04;text-align:center;">${title}</div>
+      </div>
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // Collaboration: everstake x partner — two logos centered
 // Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
 // Center frame: y=325 h=250 (vertically centered in banner)
@@ -646,6 +677,12 @@ const TEMPLATES = {
     description: 'Text left, dark right with partner logo',
     render: template8,
     fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'template-9': {
+    name: 'Centered Logo + Title',
+    description: 'Logo top center, title bottom center, grid lines',
+    render: template9,
+    fields: ['title', 'partnerLogo'],
   },
 };
 
