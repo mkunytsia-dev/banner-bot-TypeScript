@@ -611,6 +611,55 @@ function template10({ title, partnerLogo }) {
 }
 
 // ============================================
+// Template 11: Collaboration 3 companies — title left, 3 logos right
+// Figma: Collaboration - 3 company
+// ============================================
+function template11({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 }) {
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-11.png'));
+  const logo1Src = partnerLogo1 ? getPartnerLogo(partnerLogo1) : '';
+  const logo2Src = partnerLogo2 ? getPartnerLogo(partnerLogo2) : '';
+  const logo3Src = partnerLogo3 ? getPartnerLogo(partnerLogo3) : '';
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner" style="color:#034638;">
+      <!-- Background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Title: x=82 y=478, 86px -->
+      <div id="title-container" style="position:absolute;left:82px;top:478px;width:810px;height:267px;z-index:5;">
+        <div id="title" style="font-weight:200;font-size:86px;line-height:1.08;">${title}</div>
+      </div>
+
+      <!-- Subtitle: x=82 y=769, 44px, #7b9690 -->
+      ${subtitle ? `<div style="position:absolute;left:82px;top:769px;z-index:5;font-weight:500;font-size:44px;color:#7b9690;">${subtitle}</div>` : ''}
+
+      <!-- Logo 1: centered in (940..1560, 40..291) -->
+      ${logo1Src ? `
+        <div style="position:absolute;left:940px;top:40px;width:620px;height:251px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${logo1Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+
+      <!-- Logo 2: centered in (940..1560, 293..576) -->
+      ${logo2Src ? `
+        <div style="position:absolute;left:940px;top:293px;width:620px;height:283px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${logo2Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+
+      <!-- Logo 3: centered in (940..1560, 578..860) -->
+      ${logo3Src ? `
+        <div style="position:absolute;left:940px;top:578px;width:620px;height:282px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${logo3Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // Collaboration: everstake x partner — two logos centered
 // Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
 // Center frame: y=325 h=250 (vertically centered in banner)
@@ -723,6 +772,12 @@ const TEMPLATES = {
     description: 'Dark bg, white text left, white partner logo right',
     render: template10,
     fields: ['title', 'partnerLogo'],
+  },
+  'template-11': {
+    name: 'Collaboration 3 Companies',
+    description: 'Title left, 3 partner logos stacked right',
+    render: template11,
+    fields: ['title', 'subtitle', 'partnerLogo1', 'partnerLogo2', 'partnerLogo3'],
   },
 };
 
