@@ -577,6 +577,40 @@ function template9({ title, partnerLogo }) {
 }
 
 // ============================================
+// Template 10: Dark full — everstake logo top-left, title bottom-left, partner logo right (all white)
+// Figma: DES-351
+// ============================================
+function template10({ title, partnerLogo }) {
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-10.png'));
+  const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
+  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner" style="color:#f5fffd;">
+      <!-- Background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Everstake logo white: x=82 y=90 -->
+      <img src="${everstakeLogo}" style="position:absolute;top:90px;left:82px;height:40px;z-index:10;" />
+
+      <!-- Title: x=82 y=544, 132px, white, auto-fit -->
+      <div id="title-container" style="position:absolute;left:82px;top:544px;width:663px;height:274px;z-index:5;">
+        <div id="title" style="font-weight:200;font-size:132px;line-height:1.04;">${title}</div>
+      </div>
+
+      <!-- Partner logo white, centered in right area (x=801..1560, y=40..860) -->
+      ${partnerLogoSrc ? `
+        <div style="position:absolute;left:801px;top:40px;width:759px;height:820px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${partnerLogoSrc}" style="max-width:436px;max-height:440px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+        </div>
+      ` : ''}
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // Collaboration: everstake x partner — two logos centered
 // Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
 // Center frame: y=325 h=250 (vertically centered in banner)
@@ -682,6 +716,12 @@ const TEMPLATES = {
     name: 'Centered Logo + Title',
     description: 'Logo top center, title bottom center, grid lines',
     render: template9,
+    fields: ['title', 'partnerLogo'],
+  },
+  'template-10': {
+    name: 'Dark Full',
+    description: 'Dark bg, white text left, white partner logo right',
+    render: template10,
     fields: ['title', 'partnerLogo'],
   },
 };
