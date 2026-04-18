@@ -709,6 +709,50 @@ function template12({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 
 }
 
 // ============================================
+// Template 13: Guide/Tutorial — everstake x partner top, subtitle + title left, crypto icon right
+// Figma: DES-294
+// ============================================
+function template13({ title, subtitle, partnerLogo, cryptoIcon }) {
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-13.png'));
+  const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
+  const partnerLogoSrc = partnerLogo ? getPartnerLogo(partnerLogo) : '';
+  const cryptoIconSrc = cryptoIcon ? getPartnerLogo(cryptoIcon) : '';
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner" style="color:#034638;">
+      <!-- Background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Top: everstake x partner logos -->
+      <div style="position:absolute;left:82px;top:82px;display:flex;align-items:center;gap:20px;z-index:10;">
+        <img src="${everstakeLogo}" style="height:40px;" />
+        ${partnerLogoSrc ? `
+          <span style="font-size:18px;color:#7b9690;">x</span>
+          <img src="${partnerLogoSrc}" style="height:40px;width:auto;" />
+        ` : ''}
+      </div>
+
+      <!-- Subtitle: x=82 y=468, 22px -->
+      ${subtitle ? `<div style="position:absolute;left:82px;top:468px;z-index:5;font-weight:500;font-size:22px;letter-spacing:0.05em;">${subtitle}</div>` : ''}
+
+      <!-- Title: x=82 y=518, 96px, auto-fit -->
+      <div id="title-container" style="position:absolute;left:82px;top:518px;width:654px;height:300px;z-index:5;">
+        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
+      </div>
+
+      <!-- Crypto icon centered in right panel -->
+      ${cryptoIconSrc ? `
+        <div style="position:absolute;left:800px;top:40px;width:760px;height:820px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${cryptoIconSrc}" style="max-width:480px;max-height:480px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // Collaboration: everstake x partner — two logos centered
 // Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
 // Center frame: y=325 h=250 (vertically centered in banner)
@@ -833,6 +877,12 @@ const TEMPLATES = {
     description: 'Dark bg, white text left, 3 white logos right',
     render: template12,
     fields: ['title', 'subtitle', 'partnerLogo1', 'partnerLogo2', 'partnerLogo3'],
+  },
+  'template-13': {
+    name: 'Guide / Tutorial',
+    description: 'Everstake x partner top, title left, crypto icon right',
+    render: template13,
+    fields: ['title', 'subtitle', 'partnerLogo', 'cryptoIcon'],
   },
 };
 
