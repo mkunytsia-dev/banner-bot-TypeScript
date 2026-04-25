@@ -868,6 +868,44 @@ function template16({ title, partnerLogo, cryptoIcon }) {
 }
 
 // ============================================
+// Template 17: Collaboration 2 companies — title left, 2 logos stacked right
+// Figma: DES-320 (Everstake + Sats Terminal)
+// ============================================
+function template17({ title, partnerLogo1, partnerLogo2 }) {
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-17.png'));
+  const logo1Src = partnerLogo1 ? getPartnerLogo(partnerLogo1) : '';
+  const logo2Src = partnerLogo2 ? getPartnerLogo(partnerLogo2) : '';
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner" style="color:#034638;">
+      <!-- Background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Title: x=82 y=418, 96px, auto-fit -->
+      <div id="title-container" style="position:absolute;left:82px;top:418px;width:810px;height:400px;z-index:5;">
+        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
+      </div>
+
+      <!-- Logo 1: centered in (940..1560, 40..449) -->
+      ${logo1Src ? `
+        <div style="position:absolute;left:940px;top:40px;width:620px;height:409px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${logo1Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+
+      <!-- Logo 2: centered in (940..1560, 451..860) -->
+      ${logo2Src ? `
+        <div style="position:absolute;left:940px;top:451px;width:620px;height:409px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${logo2Src}" style="max-width:479px;max-height:100px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // Collaboration: everstake x partner — two logos centered
 // Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
 // Center frame: y=325 h=250 (vertically centered in banner)
@@ -1016,6 +1054,12 @@ const TEMPLATES = {
     description: 'Dark bg, crypto icon left, everstake x partner + title right',
     render: template16,
     fields: ['title', 'partnerLogo', 'cryptoIcon'],
+  },
+  'template-17': {
+    name: 'Collaboration 2 Companies',
+    description: 'Title left, 2 partner logos stacked right',
+    render: template17,
+    fields: ['title', 'partnerLogo1', 'partnerLogo2'],
   },
 };
 
