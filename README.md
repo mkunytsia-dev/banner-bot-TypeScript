@@ -1,40 +1,151 @@
 # Banner Bot
 
-Automated banner generation system for the marketing team. Generates PNG banners (1600×900) from predefined templates via a Slack bot.
+Automated banner generation system for the Everstake marketing team. Generates PNG banners (1600x900) from predefined templates via code or Slack bot.
 
 ## Templates
 
-| Type | Name | Description |
-|------|------|-------------|
-| **A** | Brand Article | Split layout: title left, partner logo right |
-| **B** | Centered Title | Large centered title with optional logo above |
-| **C** | Dark Article | Dark background with centered title |
-| **D** | Partnership | Everstake × Partner logos side by side |
-| **E** | Week in Blockchains | Weekly digest banner with crypto icons |
-| **F** | Guide / Tutorial | Split layout with right illustration |
+### Template 1 — Text in Center (4 variants)
+Centered title between grid lines. Figma-exported PNG backgrounds.
 
-### Template previews
+| Variant | Theme | Accents |
+|---------|-------|---------|
+| v1 | Dark | Green + yellow blob |
+| v2 | Light | Green + orange blob |
+| v3 | Dark | Green + teal blob |
+| v4 | Dark | Yellow blob bottom |
 
-**Type A — Brand Article** (light/dark)
-![Type A](docs/preview-type-a.png)
+![Template 1 v1](docs/previews/template-1-v1.png)
+![Template 1 v2](docs/previews/template-1-v2.png)
+![Template 1 v3](docs/previews/template-1-v3.png)
+![Template 1 v4](docs/previews/template-1-v4.png)
 
-**Type B — Centered Title**
-![Type B](docs/preview-type-b.png)
+---
 
-**Type C — Dark Article**
-![Type C](docs/preview-type-c.png)
+### Template 2 — Week in Blockchains
+Weekly digest banner. Date text + "Week in Blockchains" left, crypto icons right.
 
-**Type E — Week in Blockchains**
-![Type E](docs/preview-type-e.png)
+![Template 2](docs/previews/template-2.png)
 
-**Type F — Guide / Tutorial**
-![Type F](docs/preview-type-f.png)
+---
+
+### Template 3 — APR
+Crypto APR banner. Subtitle (coin + rate) + "Annual Percentage Rate" left, logomark right on gradient panel.
+
+![Template 3](docs/previews/template-3.png)
+
+---
+
+### Template 4 — Collaboration
+Everstake x Partner — two logos centered side by side. Both logos 86px height, color `#034638`.
+
+![Template 4](docs/previews/template-4.png)
+
+---
+
+### Template 5 — About Blockchain v1
+Split layout: everstake logo top-left, subtitle + title bottom-left, partner logo on right gradient panel with hex pattern. All CSS (no background images).
+
+![Template 5](docs/previews/template-5.png)
+
+---
+
+### Template 6 — About Blockchain v2
+Mirror of Template 5: partner logo on left gradient panel with hex pattern, everstake logo + text right.
+
+![Template 6](docs/previews/template-6.png)
+
+---
+
+### Template 7 — Dark Left Panel
+Dark left panel with everstake logo (white) + title (white), partner logo on light right side.
+
+![Template 7](docs/previews/template-7.png)
+
+---
+
+### Template 8 — Dark Right Panel
+Mirror of Template 7: text left on light bg, dark right panel with partner logo (auto-inverted to white).
+
+![Template 8](docs/previews/template-8.png)
+
+---
+
+### Template 9 — Centered Logo + Title
+Logo centered top, title centered bottom, grid lines, orange blob top-left + green blob bottom-right. Figma-exported background.
+
+![Template 9](docs/previews/template-9.png)
+
+---
+
+### Template 10 — Dark Full
+Full dark background with gradient blob, everstake logo (white) top-left, title (white) bottom-left, partner icon (white) on right gradient panel.
+
+![Template 10](docs/previews/template-10.png)
+
+---
+
+### Template 11 — Collaboration 3 Companies (Light)
+Title + subtitle left, 3 partner logos stacked right on gradient panel with divider lines.
+
+![Template 11](docs/previews/template-11.png)
+
+---
+
+### Template 12 — Collaboration 3 Companies (Dark)
+Dark version of Template 11. White text, logos auto-inverted to white.
+
+![Template 12](docs/previews/template-12.png)
+
+---
+
+### Template 13 — Guide / Tutorial
+Everstake x partner logos top-left, subtitle + title bottom-left, crypto icon on right gradient panel.
+
+![Template 13](docs/previews/template-13.png)
+
+---
+
+### Template 14 — Dark Partner Left
+Dark bg, partner full logo on left gradient panel (white), everstake logo + subtitle + title right (white).
+
+![Template 14](docs/previews/template-14.png)
+
+---
+
+### Template 15 — Dark Text Left + Icon Right
+Dark bg with gradient blobs, everstake logo + title + subtitle left (white), partner icon on right gradient panel (white).
+
+![Template 15](docs/previews/template-15.png)
+
+---
+
+### Template 16 — Dark Guide
+Dark bg, crypto icon on left gradient panel (white), everstake x partner logos top-right, title bottom-right (white).
+
+![Template 16](docs/previews/template-16.png)
+
+---
+
+### Template 17 — Collaboration 2 Companies (Light)
+Title left, 2 partner logos stacked right on gradient panel with middle divider.
+
+![Template 17](docs/previews/template-17.png)
+
+---
+
+### Template 18 — Wide Dark + 2 Logos
+Wide dark left panel (980px) with subtitle + title, 2 logos stacked right on light bg with middle divider.
+
+![Template 18](docs/previews/template-18.png)
+
+---
 
 ## Tech stack
 
-- **Node.js** + **Puppeteer** — renders HTML/CSS templates to PNG
+- **Node.js** + **Puppeteer** — renders HTML/CSS templates to PNG 1600x900
 - **Slack Bolt** — Slack bot framework (Socket Mode)
 - **Zalando Sans** — custom font (included in `assets/fonts/`)
+- **Figma API** — for extracting logos and design tokens
 
 ## Setup
 
@@ -44,70 +155,35 @@ Automated banner generation system for the marketing team. Generates PNG banners
 npm install
 ```
 
-### 2. Create Slack App
-
-1. Go to https://api.slack.com/apps → **Create New App** → **From Scratch**
-2. Enable **Socket Mode** → create App-Level Token with `connections:write` scope
-3. Create **Slash Command**: `/banner` — "Generate a marketing banner"
-4. Add **Bot Token Scopes** under OAuth & Permissions:
-   - `commands`
-   - `chat:write`
-   - `files:write`
-   - `files:read`
-5. Enable **Interactivity**
-6. **Install to Workspace**
-
-### 3. Configure environment
+### 2. Configure environment
 
 ```bash
 cp .env.example .env
 ```
 
-Fill in your tokens:
+### 3. Add partner logos
+
+Place PNG/SVG files in `assets/logos/`:
 
 ```
-SLACK_BOT_TOKEN=xoxb-...
-SLACK_SIGNING_SECRET=...
-SLACK_APP_TOKEN=xapp-...
-```
-
-### 4. Add partner logos
-
-Place PNG/SVG files in `assets/logos/`. They will automatically appear in the Slack dropdown:
-
-```
-assets/logos/monad.png
-assets/logos/solana.png
-assets/logos/aptos.png
-assets/logos/ethereum.png
+assets/logos/monad.svg
+assets/logos/solana-full.svg
+assets/logos/aptos-full.svg
+assets/logos/ethereum-full.svg
 ...
 ```
 
-### 5. Run
+### 4. Generate previews
+
+```bash
+node src/generate-previews.js
+```
+
+### 5. Run (with Slack)
 
 ```bash
 npm start
 ```
-
-## Usage
-
-In Slack, type `/banner` → a modal opens where you:
-
-1. **Choose a template** (A–F)
-2. **Enter title** and optional subtitle
-3. **Select partner logo** from the dropdown
-4. **Pick theme** (light / dark)
-5. Hit **Generate** → bot posts the PNG in the channel
-
-## Local preview
-
-Generate all template previews without Slack:
-
-```bash
-npm run preview
-```
-
-Output goes to `output/`.
 
 ## Project structure
 
@@ -117,22 +193,36 @@ banner-bot/
 │   ├── app.js                  # Slack bot entry point
 │   ├── renderer.js             # Puppeteer HTML→PNG renderer
 │   ├── preview.js              # Local preview generator
+│   ├── generate-previews.js    # Generate all template previews
+│   ├── presentation.js         # Presentation slide generator
 │   ├── templates/
-│   │   ├── templates.js        # All 6 template types (HTML generators)
-│   │   └── base.css            # Shared styles reference
+│   │   └── templates.js        # All 18 template types
 │   └── slack/
 │       └── interactions.js     # Slack command & modal handlers
 ├── assets/
 │   ├── fonts/                  # Zalando Sans (.ttf)
-│   └── logos/                  # Partner logos + everstake branding
+│   └── logos/                  # Partner logos, backgrounds, patterns
+├── docs/
+│   └── previews/               # Template preview images
 ├── output/                     # Generated banners (gitignored)
 ├── .env.example
 ├── package.json
 └── README.md
 ```
 
-## Adding a new template
+## Design system
 
-1. Add a new render function in `src/templates/templates.js` following the existing pattern
-2. Register it in the `TEMPLATES` object
-3. Run `npm run preview` to verify
+| Token | Value |
+|-------|-------|
+| Light background | `#f5fffd` |
+| Dark background | `linear-gradient(to top right, #034638 75%, #012d24 100%)` |
+| Text on light | `#034638` |
+| Text on dark | `#f5fffd` |
+| Accent | `#40c1ac` |
+| Muted text | `#7b9690` |
+| Grid lines (light) | `#dee8e6` |
+| Grid lines (dark) | `#55857b` |
+| Font | Zalando Sans (200, 300, 400, 500) |
+| Partner logo color | `#034638` |
+| Gradient blob | `rgba(64,193,172,0.40)` → `rgba(130,230,180,1.0)` |
+| Right panel gradient | `rgba(64,193,172,0.20)` → `rgba(123,150,144,0.50)` |

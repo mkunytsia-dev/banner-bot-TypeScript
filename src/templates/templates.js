@@ -906,6 +906,47 @@ function template17({ title, partnerLogo1, partnerLogo2 }) {
 }
 
 // ============================================
+// Template 18: Wide dark left + 2 logos right (light)
+// Figma: DES-306 variant (Solana/DoubleZero)
+// ============================================
+function template18({ title, subtitle, partnerLogo1, partnerLogo2 }) {
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-18.png'));
+  const logo1Src = partnerLogo1 ? getPartnerLogo(partnerLogo1) : '';
+  const logo2Src = partnerLogo2 ? getPartnerLogo(partnerLogo2) : '';
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner">
+      <!-- Background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Subtitle: x=48 y=379, 40px, #7b9690 -->
+      ${subtitle ? `<div style="position:absolute;left:48px;top:379px;z-index:5;font-weight:500;font-size:40px;color:#7b9690;">${subtitle}</div>` : ''}
+
+      <!-- Title: x=48 y=448, 96px, white, auto-fit -->
+      <div id="title-container" style="position:absolute;left:48px;top:448px;width:884px;height:400px;z-index:5;">
+        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;color:#f5fffd;">${title}</div>
+      </div>
+
+      <!-- Logo 1: centered in (980..1600, 0..448) -->
+      ${logo1Src ? `
+        <div style="position:absolute;left:980px;top:2px;width:620px;height:446px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${logo1Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+
+      <!-- Logo 2: centered in (980..1600, 450..898) -->
+      ${logo2Src ? `
+        <div style="position:absolute;left:980px;top:450px;width:620px;height:448px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <img src="${logo2Src}" style="max-width:450px;max-height:100px;width:auto;height:auto;" />
+        </div>
+      ` : ''}
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // Collaboration: everstake x partner — two logos centered
 // Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
 // Center frame: y=325 h=250 (vertically centered in banner)
@@ -970,6 +1011,12 @@ const TEMPLATES = {
     description: 'Split layout with right illustration',
     render: typeF,
     fields: ['title', 'subtitle', 'partnerLogo', 'theme'],
+  },
+  'template-18': {
+    name: 'Wide Dark + 2 Logos',
+    description: 'Wide dark left with text, 2 logos stacked right on light bg',
+    render: template18,
+    fields: ['title', 'subtitle', 'partnerLogo1', 'partnerLogo2'],
   },
 };
 
