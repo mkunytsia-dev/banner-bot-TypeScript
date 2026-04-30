@@ -906,6 +906,34 @@ function template17({ title, partnerLogo1, partnerLogo2 }) {
 }
 
 // ============================================
+// Collaboration: everstake x partner — two logos centered
+// Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
+// Center frame: y=325 h=250 (vertically centered in banner)
+// ============================================
+function typeCollaboration({ partnerLogo }) {
+  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-collaboration.png'));
+  // Everstake logo in #034638 (SVG from Figma Collaboration frame)
+  const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-collab.svg'));
+  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+
+  return `<!DOCTYPE html><html><head><style>
+    ${baseStyles()}
+  </style></head><body>
+    <div class="banner">
+      <!-- Figma background -->
+      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
+
+      <!-- Centered logos: everstake x partner (visually equal) -->
+      <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:50px;z-index:5;">
+        <img src="${everstakeLogo}" style="height:86px;width:auto;" />
+        <span style="font-family:'Zalando Sans',sans-serif;font-weight:300;font-size:48px;color:#034638;opacity:0.5;">x</span>
+        ${partnerLogoSrc ? `<img src="${partnerLogoSrc}" style="height:86px;width:auto;" />` : ''}
+      </div>
+    </div>
+  </body></html>`;
+}
+
+// ============================================
 // Template 18: Wide dark left + 2 logos right (light)
 // Figma: DES-306 variant (Solana/DoubleZero)
 // ============================================
@@ -946,34 +974,6 @@ function template18({ title, subtitle, partnerLogo1, partnerLogo2 }) {
   </body></html>`;
 }
 
-// ============================================
-// Collaboration: everstake x partner — two logos centered
-// Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
-// Center frame: y=325 h=250 (vertically centered in banner)
-// ============================================
-function typeCollaboration({ partnerLogo }) {
-  const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-collaboration.png'));
-  // Everstake logo in #034638 (SVG from Figma Collaboration frame)
-  const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-collab.svg'));
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
-
-  return `<!DOCTYPE html><html><head><style>
-    ${baseStyles()}
-  </style></head><body>
-    <div class="banner">
-      <!-- Figma background -->
-      <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
-
-      <!-- Centered logos: everstake x partner (visually equal) -->
-      <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:50px;z-index:5;">
-        <img src="${everstakeLogo}" style="height:86px;width:auto;" />
-        <span style="font-family:'Zalando Sans',sans-serif;font-weight:300;font-size:48px;color:#034638;opacity:0.5;">x</span>
-        ${partnerLogoSrc ? `<img src="${partnerLogoSrc}" style="height:86px;width:auto;" />` : ''}
-      </div>
-    </div>
-  </body></html>`;
-}
-
 // Template registry
 const TEMPLATES = {
   'type-a': {
@@ -1004,13 +1004,103 @@ const TEMPLATES = {
     name: 'Week in Blockchains',
     description: 'Weekly digest banner with crypto icons',
     render: typeE,
-    fields: ['dateRange'],
+    fields: ['dateRange', 'cryptoIcons', 'theme'],
   },
   'type-f': {
     name: 'Guide / Tutorial',
     description: 'Split layout with right illustration',
     render: typeF,
-    fields: ['title', 'subtitle', 'partnerLogo', 'theme'],
+    fields: ['title', 'subtitle', 'partnerLogo', 'rightImage', 'theme'],
+  },
+  'apr': {
+    name: 'APR',
+    description: 'Crypto APR banner: subtitle + title left, logo right',
+    render: typeAPR,
+    fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'collaboration': {
+    name: 'Collaboration',
+    description: 'Everstake x Partner — two logos centered',
+    render: typeCollaboration,
+    fields: ['partnerLogo'],
+  },
+  'template-5': {
+    name: 'About Blockchain v1',
+    description: 'Split layout: text left, partner logo right',
+    render: template5,
+    fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'template-6': {
+    name: 'About Blockchain v2',
+    description: 'Split layout: partner logo left, text right',
+    render: template6,
+    fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'template-7': {
+    name: 'Dark Left Panel',
+    description: 'Dark left with text, partner logo right',
+    render: template7,
+    fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'template-8': {
+    name: 'Dark Right Panel',
+    description: 'Text left, dark right with partner logo',
+    render: template8,
+    fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'template-9': {
+    name: 'Centered Logo + Title',
+    description: 'Logo top center, title bottom center, grid lines',
+    render: template9,
+    fields: ['title', 'partnerLogo'],
+  },
+  'template-10': {
+    name: 'Dark Full',
+    description: 'Dark bg, white text left, white partner logo right',
+    render: template10,
+    fields: ['title', 'partnerLogo'],
+  },
+  'template-11': {
+    name: 'Collaboration 3 Companies',
+    description: 'Title left, 3 partner logos stacked right',
+    render: template11,
+    fields: ['title', 'subtitle', 'partnerLogo1', 'partnerLogo2', 'partnerLogo3'],
+  },
+  'template-12': {
+    name: 'Dark Collaboration 3 Companies',
+    description: 'Dark bg, white text left, 3 white logos right',
+    render: template12,
+    fields: ['title', 'subtitle', 'partnerLogo1', 'partnerLogo2', 'partnerLogo3'],
+  },
+  'template-13': {
+    name: 'Guide / Tutorial',
+    description: 'Everstake x partner top, title left, crypto icon right',
+    render: template13,
+    fields: ['title', 'subtitle', 'partnerLogo', 'cryptoIcon'],
+  },
+  'template-14': {
+    name: 'Dark Partner Left',
+    description: 'Dark bg, partner logo left panel, white text right',
+    render: template14,
+    fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'template-15': {
+    name: 'Dark Text Left + Icon Right',
+    description: 'Dark bg, white text left, partner icon on right gradient panel',
+    render: template15,
+    fields: ['title', 'subtitle', 'partnerLogo'],
+  },
+  'template-16': {
+    name: 'Dark Guide',
+    description: 'Dark bg, crypto icon left, everstake x partner + title right',
+    render: template16,
+    fields: ['title', 'partnerLogo', 'cryptoIcon'],
+  },
+  'template-17': {
+    name: 'Collaboration 2 Companies',
+    description: 'Title left, 2 partner logos stacked right',
+    render: template17,
+    fields: ['title', 'partnerLogo1', 'partnerLogo2'],
   },
   'template-18': {
     name: 'Wide Dark + 2 Logos',
