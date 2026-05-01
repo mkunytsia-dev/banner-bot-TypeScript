@@ -42,19 +42,18 @@ async function renderBanner(templateId, params) {
     const maxW = container.offsetWidth;
     let fontSize = parseInt(window.getComputedStyle(title).fontSize) || 111;
 
-    // Temporarily remove flex centering to get true scroll dimensions
+    // Temporarily set to flex-start to measure true content height
     const origJustify = container.style.justifyContent;
     container.style.justifyContent = 'flex-start';
 
     while (fontSize > 40) {
       title.style.fontSize = fontSize + 'px';
-      // Force reflow
       void title.offsetHeight;
       if (container.scrollHeight <= maxH && title.scrollWidth <= maxW) break;
       fontSize -= 2;
     }
 
-    // Restore centering
+    // Restore alignment (flex-end for bottom-aligned, center for centered)
     container.style.justifyContent = origJustify;
   });
 

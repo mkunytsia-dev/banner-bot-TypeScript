@@ -228,7 +228,7 @@ function typeAPR({ title, subtitle, partnerLogo }) {
       ${subtitle ? `<div style="position:absolute;left:82px;top:513px;z-index:5;font-weight:500;font-size:44px;color:#7b9690;">${subtitle}</div>` : ''}
 
       <!-- Title: Figma x=82 y=586, 112px, weight 250, max-width 810px -->
-      <div id="title-container" style="position:absolute;left:82px;top:586px;width:810px;height:272px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:82px;top:586px;width:810px;height:272px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:112px;line-height:1.04;color:#034638;">${title}</div>
       </div>
 
@@ -401,7 +401,7 @@ function template5({ title, subtitle, partnerLogo }) {
       ${subtitle ? `<div style="position:absolute;left:56px;top:580px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
 
       <!-- Title: x=56 y=644, 96px w200, max-width 700px with auto-fit -->
-      <div id="title-container" style="position:absolute;left:56px;top:644px;width:700px;height:220px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:56px;top:644px;width:700px;height:220px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
       </div>
 
@@ -452,7 +452,7 @@ function template6({ title, subtitle, partnerLogo }) {
       ${subtitle ? `<div style="position:absolute;left:856px;top:521px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
 
       <!-- Title: x=856 y=577, 86px w200, max-width 688px with auto-fit -->
-      <div id="title-container" style="position:absolute;left:856px;top:577px;width:688px;height:280px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:856px;top:577px;width:688px;height:280px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:86px;line-height:1.08;">${title}</div>
       </div>
     </div>
@@ -486,7 +486,7 @@ function template7({ title, subtitle, partnerLogo }) {
       ${subtitle ? `<div style="position:absolute;left:48px;top:494px;z-index:5;font-weight:500;font-size:28px;color:#f5fffd;">${subtitle}</div>` : ''}
 
       <!-- Title: x=48 y=560, 140px w250, white, auto-fit -->
-      <div id="title-container" style="position:absolute;left:48px;top:560px;width:700px;height:300px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:48px;top:560px;width:700px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:140px;line-height:1.04;color:#f5fffd;">${title}</div>
       </div>
 
@@ -531,7 +531,7 @@ function template8({ title, subtitle, partnerLogo }) {
       ${subtitle ? `<div style="position:absolute;left:48px;top:530px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
 
       <!-- Title: x=48 y=576, 88px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:48px;top:576px;width:704px;height:280px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:48px;top:576px;width:704px;height:280px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:88px;line-height:1.04;">${title}</div>
       </div>
 
@@ -596,7 +596,7 @@ function template10({ title, partnerLogo }) {
       <img src="${everstakeLogo}" style="position:absolute;top:90px;left:82px;height:40px;z-index:10;" />
 
       <!-- Title: x=82 y=544, 132px, white, auto-fit -->
-      <div id="title-container" style="position:absolute;left:82px;top:544px;width:663px;height:274px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:82px;top:544px;width:663px;height:274px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:132px;line-height:1.04;">${title}</div>
       </div>
 
@@ -628,7 +628,7 @@ function template11({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
       <!-- Title: x=82 y=478, 86px -->
-      <div id="title-container" style="position:absolute;left:82px;top:478px;width:810px;height:267px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:82px;top:478px;width:810px;height:267px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:86px;line-height:1.08;">${title}</div>
       </div>
 
@@ -677,7 +677,7 @@ function template12({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
       <!-- Title: x=82 y=478, 86px, white -->
-      <div id="title-container" style="position:absolute;left:82px;top:478px;width:810px;height:267px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:82px;top:478px;width:810px;height:267px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:86px;line-height:1.08;">${title}</div>
       </div>
 
@@ -738,7 +738,7 @@ function template13({ title, subtitle, partnerLogo, cryptoIcon }) {
       ${subtitle ? `<div style="position:absolute;left:82px;top:468px;z-index:5;font-weight:500;font-size:22px;letter-spacing:0.05em;">${subtitle}</div>` : ''}
 
       <!-- Title: x=82 y=518, 96px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:82px;top:518px;width:654px;height:300px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:82px;top:518px;width:654px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
       </div>
 
@@ -782,7 +782,7 @@ function template14({ title, subtitle, partnerLogo }) {
       ${subtitle ? `<div style="position:absolute;left:855px;top:470px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
 
       <!-- Title: x=855 y=526, 96px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:855px;top:526px;width:655px;height:300px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:855px;top:526px;width:655px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
       </div>
     </div>
@@ -809,7 +809,7 @@ function template15({ title, subtitle, partnerLogo }) {
       <img src="${everstakeLogo}" style="position:absolute;top:90px;left:82px;height:40px;z-index:10;" />
 
       <!-- Title: x=82 y=493, 83px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:82px;top:493px;width:663px;height:258px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:82px;top:493px;width:663px;height:258px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:83px;line-height:1.04;">${title}</div>
       </div>
 
@@ -860,7 +860,7 @@ function template16({ title, partnerLogo, cryptoIcon }) {
       </div>
 
       <!-- Title: x=855 y=530, 92px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:855px;top:530px;width:647px;height:288px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:855px;top:530px;width:647px;height:288px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:92px;line-height:1.04;">${title}</div>
       </div>
     </div>
@@ -884,7 +884,7 @@ function template17({ title, partnerLogo1, partnerLogo2 }) {
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
       <!-- Title: x=82 y=418, 96px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:82px;top:418px;width:810px;height:400px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:82px;top:418px;width:810px;height:400px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
       </div>
 
@@ -953,7 +953,7 @@ function template18({ title, subtitle, partnerLogo1, partnerLogo2 }) {
       ${subtitle ? `<div style="position:absolute;left:48px;top:379px;z-index:5;font-weight:500;font-size:40px;color:#7b9690;">${subtitle}</div>` : ''}
 
       <!-- Title: x=48 y=448, 96px, white, auto-fit -->
-      <div id="title-container" style="position:absolute;left:48px;top:448px;width:884px;height:400px;z-index:5;">
+      <div id="title-container" style="position:absolute;left:48px;top:448px;width:884px;height:400px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
         <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;color:#f5fffd;">${title}</div>
       </div>
 
