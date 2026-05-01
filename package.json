@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "node --watch src/app.js",
-    "preview": "node src/preview.js"
+    "preview": "node src/generate-previews.js"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "@slack/bolt": "^4.1.0",

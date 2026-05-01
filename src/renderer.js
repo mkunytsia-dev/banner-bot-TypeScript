@@ -81,4 +81,4 @@ async function closeBrowser() {
   }
 }
 
-module.exports = { renderBanner, closeBrowser };
+module.exports = { renderBanner, closeBrowser, getBrowser };
