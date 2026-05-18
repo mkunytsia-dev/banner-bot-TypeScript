@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "node --watch src/app.js",
-    "preview": "node src/generate-previews.js"
+    "preview": "node src/generate-previews.js",
+    "web": "node src/web-server.js"
   },
   "engines": {
     "node": ">=20"

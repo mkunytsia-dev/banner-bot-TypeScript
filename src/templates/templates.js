@@ -76,6 +76,56 @@ function baseStyles() {
   `;
 }
 
+// Inline script that fits #title (and any [data-autofit] inside [data-autofit-container])
+// into its container by binary-searching font-size between min and max.
+// Max defaults to the title's initial computed font-size; min defaults to 50% of max.
+// Override via data-max-size / data-min-size on the title element.
+// Sets window.__autoFitDone = true when complete (Puppeteer waits on this).
+function autoFitScript() {
+  return `<script>(async function(){
+    try { await document.fonts.ready; } catch(_) {}
+    function readMax(el){ var v = parseFloat(el.dataset.maxSize); return isNaN(v) ? parseFloat(getComputedStyle(el).fontSize) : v; }
+    function readMin(el){ var v = parseFloat(el.dataset.minSize); return isNaN(v) ? 12 : v; }
+    function fits(container, elems){
+      var visible = []; for (var i=0;i<elems.length;i++){ if (elems[i]) visible.push(elems[i]); }
+      if (visible.length === 0) return true;
+      var cs = getComputedStyle(container);
+      var gap = parseFloat(cs.rowGap || cs.gap || '0') || 0;
+      var totalH = 0;
+      for (var i=0;i<visible.length;i++) totalH += visible[i].getBoundingClientRect().height;
+      totalH += gap * (visible.length - 1);
+      if (totalH > container.clientHeight + 0.5) return false;
+      for (var i=0;i<visible.length;i++) if (visible[i].scrollWidth > container.clientWidth) return false;
+      return true;
+    }
+    function bsearch(el, container, all){
+      var lo = readMin(el), hi = readMax(el), best = lo;
+      while (lo <= hi){
+        var mid = Math.floor((lo+hi)/2);
+        el.style.fontSize = mid + 'px';
+        void el.offsetHeight;
+        if (fits(container, all)) { best = mid; lo = mid + 1; }
+        else { hi = mid - 1; }
+      }
+      el.style.fontSize = best + 'px';
+    }
+    function fitBlock(container){
+      var title = container.querySelector('#title, [data-autofit-role="title"]');
+      if (!title) return;
+      var siblings = Array.prototype.filter.call(container.children, function(c){ return c !== title; });
+      var all = [title].concat(siblings);
+      title.style.fontSize = readMax(title) + 'px';
+      void title.offsetHeight;
+      if (fits(container, all)) return;
+      bsearch(title, container, all);
+    }
+    var c = document.getElementById('title-container');
+    if (c) fitBlock(c);
+    document.querySelectorAll('[data-autofit-container]').forEach(fitBlock);
+    window.__autoFitDone = true;
+  })();</script>`;
+}
+
 function gridOverlay(theme = 'light') {
   const color = theme === 'dark' ? 'rgba(222,232,230,0.12)' : '#dee8e6';
   // 5 vertical lines + 2 horizontal lines matching Figma grid
@@ -199,10 +249,10 @@ function typeC({ title, subtitle, variant = 'v1' }) {
       <!-- Figma background (gradients + lines, pixel-perfect) -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Title: centered between grid lines (y=242..658, x=242..1358) -->
-      <div id="title-container" style="position:absolute;left:262px;top:262px;width:1076px;height:376px;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <!-- Title: fixed 1004x304 block, centered on canvas (1600/900) -->
+      <div id="title-container" style="position:absolute;left:298px;top:298px;width:1004px;height:304px;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;">
         ${subtitle ? `<div style="font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:24px;text-align:center;flex-shrink:0;">${subtitle}</div>` : ''}
-        <div id="title" style="font-weight:200;font-size:111px;line-height:1.04;text-align:center;">${title}</div>
+        <div id="title" data-max-size="120" data-min-size="12" style="font-weight:200;font-size:120px;line-height:1.04;text-align:center;">${title}</div>
       </div>
     </div>
   </body></html>`;
@@ -213,9 +263,35 @@ function typeC({ title, subtitle, variant = 'v1' }) {
 // Example: DES-314 (Aptos APR)
 // Figma positions: subtitle x=82 y=513 44px w500, title x=82 y=586 112px w250
 // ============================================
-function typeAPR({ title, subtitle, partnerLogo }) {
+// Recolor an SVG. Three-way mapping:
+//   - fill="none" / "transparent"            → kept as-is (truly invisible)
+//   - white-ish (#fff, white, rgb(255,255,255)) → replaced with `secondary` (background tone)
+//   - anything else                          → replaced with `primary` (ink color)
+function recolorSvg(svgString, primary, secondary) {
+  let s = String(svgString || '');
+  const classify = (v) => {
+    const x = String(v).trim().toLowerCase().replace(/\s+/g, '');
+    if (x === 'none' || x === 'transparent') return 'skip';
+    if (x === 'white' || x === '#fff' || x === '#ffffff' ||
+        x === 'rgb(255,255,255)' || x === 'rgba(255,255,255,1)') return 'secondary';
+    return 'primary';
+  };
+  const pick = (v) => {
+    const c = classify(v);
+    if (c === 'skip') return null;
+    return c === 'secondary' ? secondary : primary;
+  };
+  s = s.replace(/fill="([^"]*)"/gi, (m, v) => { const r = pick(v); return r === null ? m : `fill="${r}"`; });
+  s = s.replace(/fill='([^']*)'/gi, (m, v) => { const r = pick(v); return r === null ? m : `fill='${r}'`; });
+  s = s.replace(/fill\s*:\s*([^;"']+)/gi, (m, v) => { const r = pick(v); return r === null ? m : `fill:${r}`; });
+  s = s.replace(/stop-color\s*=\s*"([^"]*)"/gi, (m, v) => { const r = pick(v); return r === null ? m : `stop-color="${r}"`; });
+  s = s.replace(/stop-color\s*=\s*'([^']*)'/gi, (m, v) => { const r = pick(v); return r === null ? m : `stop-color='${r}'`; });
+  return s;
+}
+
+function typeAPR({ title, subtitle, logoSvg }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-apr.png'));
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#40C1AC', '#F5FFFD') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
@@ -224,19 +300,18 @@ function typeAPR({ title, subtitle, partnerLogo }) {
       <!-- Figma background -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Subtitle: Figma x=82 y=513, 44px, weight 500, color #7b9690 -->
-      ${subtitle ? `<div style="position:absolute;left:82px;top:513px;z-index:5;font-weight:500;font-size:44px;color:#7b9690;">${subtitle}</div>` : ''}
-
-      <!-- Title: Figma x=82 y=586, 112px, weight 250, max-width 810px -->
-      <div id="title-container" style="position:absolute;left:82px;top:586px;width:810px;height:272px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:112px;line-height:1.04;color:#034638;">${title}</div>
+      <!-- Text block: 82px from left+bottom, 810x348, 24px gap between subtitle and title -->
+      <div id="title-container" style="position:absolute;left:82px;bottom:82px;width:810px;height:348px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;gap:24px;">
+        ${subtitle ? `<div id="subtitle" style="font-weight:500;font-size:44px;color:#7b9690;line-height:1.1;">${subtitle}</div>` : ''}
+        <div id="title" data-max-size="112" data-min-size="24" style="font-weight:200;line-height:1.04;color:#034638;">${title}</div>
       </div>
 
       <!-- Partner logo on right panel: centered in x=940..1560, y=42..860 -->
-      ${partnerLogoSrc ? `
+      ${recoloredSvg ? `
         <div style="position:absolute;left:940px;top:42px;width:620px;height:818px;z-index:5;display:flex;align-items:center;justify-content:center;">
-          <img src="${partnerLogoSrc}" style="max-width:400px;max-height:400px;" />
+          <div class="apr-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
+        <style>.apr-logo-slot svg { width:440px !important; height:auto !important; max-height:818px; display:block; }</style>
       ` : ''}
     </div>
   </body></html>`;
@@ -910,24 +985,41 @@ function template17({ title, partnerLogo1, partnerLogo2 }) {
 // Figma: everstake logo at x=274 y=402, partner at x=1045 y=383
 // Center frame: y=325 h=250 (vertically centered in banner)
 // ============================================
-function typeCollaboration({ partnerLogo }) {
+// Parse SVG aspect ratio (width/height) from viewBox, falling back to width/height attrs.
+function getSvgAspect(svgString) {
+  const vb = svgString.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+  if (vb) {
+    const parts = vb[1].split(/[\s,]+/).map(Number);
+    if (parts.length >= 4 && parts[2] && parts[3]) return parts[2] / parts[3];
+  }
+  const w = svgString.match(/<svg[^>]*\swidth\s*=\s*["']([0-9.]+)/i);
+  const h = svgString.match(/<svg[^>]*\sheight\s*=\s*["']([0-9.]+)/i);
+  if (w && h) {
+    const ww = parseFloat(w[1]), hh = parseFloat(h[1]);
+    if (ww && hh) return ww / hh;
+  }
+  return 1;
+}
+
+function typeCollaboration({ partnerLogoRaster, partnerLogoRasterW, partnerLogoRasterH }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-collaboration.png'));
-  // Everstake logo in #034638 (SVG from Figma Collaboration frame)
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-collab.svg'));
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+  const everstakeColor = '#034638';
+  const partnerSrc = partnerLogoRaster ? imageToBase64(path.join(LOGOS_DIR, partnerLogoRaster)) : '';
+  const w = partnerLogoRasterW || 86;
+  const h = partnerLogoRasterH || 86;
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
   </style></head><body>
     <div class="banner">
-      <!-- Figma background -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Centered logos: everstake x partner (visually equal) -->
+      <!-- Pair centered as one unit (both axes) -->
       <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:50px;z-index:5;">
-        <img src="${everstakeLogo}" style="height:86px;width:auto;" />
-        <span style="font-family:'Zalando Sans',sans-serif;font-weight:300;font-size:48px;color:#034638;opacity:0.5;">x</span>
-        ${partnerLogoSrc ? `<img src="${partnerLogoSrc}" style="height:86px;width:auto;" />` : ''}
+        <img src="${everstakeLogo}" style="height:80px;width:auto;display:block;" />
+        <span style="font-family:'Zalando Sans',sans-serif;font-weight:300;font-size:48px;color:${everstakeColor};opacity:0.5;line-height:1;">x</span>
+        ${partnerSrc ? `<img src="${partnerSrc}" style="width:${w}px;height:${h}px;display:block;" />` : ''}
       </div>
     </div>
   </body></html>`;
@@ -1110,10 +1202,21 @@ const TEMPLATES = {
   },
 };
 
+// Inject auto-fit script before </body> in every rendered banner
+for (const key of Object.keys(TEMPLATES)) {
+  const original = TEMPLATES[key].render;
+  TEMPLATES[key].render = (params) => {
+    const html = original(params);
+    return html.includes('</body>')
+      ? html.replace('</body>', autoFitScript() + '</body>')
+      : html + autoFitScript();
+  };
+}
+
 // List available partner logos
 function listLogos() {
   const files = fs.readdirSync(LOGOS_DIR);
   return files.filter(f => !f.startsWith('everstake-') && /\.(png|jpg|jpeg|svg|webp)$/i.test(f));
 }
 
-module.exports = { TEMPLATES, listLogos, getPartnerLogo, getEverstakeLogo, imageToBase64 };
+module.exports = { TEMPLATES, listLogos, getPartnerLogo, getEverstakeLogo, imageToBase64, recolorSvg, getSvgAspect };

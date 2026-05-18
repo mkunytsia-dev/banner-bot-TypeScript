@@ -151,6 +151,32 @@ Wide dark left panel with subtitle + title, 2 logos stacked right on light bg wi
 
 ---
 
+## Web Banner Maker
+
+Interactive browser UI for generating banners without the Slack bot.
+
+```bash
+npm run web
+```
+
+Opens at `http://localhost:3000`. Pick a template, edit fields, live preview in an iframe, click **Download PNG**.
+
+Key behaviors:
+- **Auto-fit title** — `#title` inside `#title-container` binary-searches font-size between `data-min-size` and `data-max-size` to fit the fixed box.
+- **SVG logo upload** — click the dropzone, pick an `.svg`, server stores it (`POST /svg` → id), then `/render?...&svgId=<id>` resolves it.
+- **Recolor** — server-side regex replaces fills with template-specific brand colors. Preserves `fill="none"` / `transparent`; maps white (`#fff`, `white`) to the secondary tone (`#F5FFFD`).
+- **Raster pipeline** — for templates where SVG sizing is brittle (currently `collaboration`), `web-server.js` rasterizes the recolored SVG via Puppeteer to a cached PNG (`assets/logos/cache/raster-<hash>.png`, gitignored) at the target dimensions, then the template `<img>`s it.
+
+### HTTP endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET`  | `/` | UI |
+| `GET`  | `/render?templateId=...&...` | HTML preview (used by iframe); `&download=1` returns PNG |
+| `POST` | `/svg` | Upload SVG body (`Content-Type: image/svg+xml`); returns `{ id }` |
+| `GET`  | `/previews/template-<N>.png` | Template thumbnails |
+| `GET`  | `/healthz` | Liveness |
+
 ## Tech stack
 
 - **Node.js** + **Puppeteer** — renders HTML/CSS templates to PNG 1600x900
@@ -182,10 +208,11 @@ Place PNG/SVG files in `assets/logos/`.
 node src/generate-previews.js
 ```
 
-### 5. Run (with Slack)
+### 5. Run
 
 ```bash
-npm start
+npm run web      # Web Banner Maker on http://localhost:3000
+npm start        # Slack bot (Socket Mode)
 ```
 
 ## Project structure
@@ -194,16 +221,20 @@ npm start
 banner-bot/
 ├── src/
 │   ├── app.js                  # Slack bot entry point
-│   ├── renderer.js             # Puppeteer HTML->PNG renderer
+│   ├── web-server.js           # Web Banner Maker HTTP server
+│   ├── renderer.js             # Puppeteer HTML->PNG renderer + SVG rasterizer
 │   ├── generate-previews.js    # Generate all template previews
 │   ├── presentation.js         # Presentation slide generator
 │   ├── templates/
-│   │   └── templates.js        # All 21 templates
+│   │   └── templates.js        # All 21 templates + autoFitScript + recolorSvg
 │   └── slack/
 │       └── interactions.js     # Slack command & modal handlers
+├── public/
+│   └── index.html              # Web Banner Maker UI
 ├── assets/
 │   ├── fonts/                  # Zalando Sans (.ttf)
 │   └── logos/                  # Partner logos, backgrounds, patterns
+│       └── cache/              # Raster + fetched logo cache (gitignored)
 ├── docs/
 │   └── previews/               # Template preview images (1-21)
 ├── output/                     # Generated banners (gitignored)

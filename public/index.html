@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Everstake Banner Maker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0e1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #40c1ac;
+    --accent-dim: rgba(64,193,172,0.15);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Layout */
+  .app {
+    display: flex;
+    height: 100vh;
+  }
+
+  /* Left: Preview */
+  .preview-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    background: var(--bg);
+    position: relative;
+  }
+  .preview-container {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .preview-container iframe {
+    width: 1600px;
+    height: 900px;
+    border: none;
+    transform-origin: top left;
+  }
+  .preview-actions {
+    position: absolute;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+  }
+  .btn-download {
+    background: var(--accent);
+    color: #034638;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-download:hover { opacity: 0.9; }
+
+  /* Right: Controls */
+  .controls-panel {
+    width: 400px;
+    min-width: 400px;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 24px;
+  }
+
+  .controls-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .controls-title {
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .controls-title span { color: var(--accent); }
+
+  /* Template Selector */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .template-selector {
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  /* Custom dropdown trigger */
+  .tpl-trigger {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .tpl-trigger:hover { border-color: var(--muted); }
+  .tpl-trigger.open { border-color: var(--accent); border-radius: 8px 8px 0 0; }
+  .tpl-trigger-img {
+    width: 80px;
+    height: 45px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .tpl-trigger-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .tpl-trigger-arrow {
+    color: var(--muted);
+    transition: transform 0.15s;
+    flex-shrink: 0;
+  }
+  .tpl-trigger.open .tpl-trigger-arrow { transform: rotate(180deg); }
+
+  /* Dropdown list */
+  .tpl-dropdown {
+    display: none;
+    position: absolute;
+    left: 0; right: 0;
+    top: 100%;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 50;
+  }
+  .tpl-dropdown.open { display: block; }
+  .tpl-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .tpl-option:last-child { border-bottom: none; }
+  .tpl-option:hover { background: var(--accent-dim); }
+  .tpl-option.selected { background: var(--accent-dim); }
+  .tpl-option-img {
+    width: 80px;
+    height: 45px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .tpl-option-text {
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .tpl-option-num {
+    font-weight: 600;
+    color: var(--accent);
+    margin-right: 4px;
+  }
+
+  /* Form Fields */
+  .fields-section {
+    margin-bottom: 24px;
+  }
+
+  .field-group {
+    margin-bottom: 16px;
+  }
+  .field-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    resize: vertical;
+  }
+  .field-input:focus { border-color: var(--accent); outline: none; }
+  textarea.field-input { min-height: 80px; }
+
+  .field-select {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b949e' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+  .field-select:focus { border-color: var(--accent); outline: none; }
+
+  /* Logo Gallery */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 4px;
+  }
+  .logo-item {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s;
+  }
+  .logo-item:hover { border-color: var(--muted); }
+  .logo-item.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .logo-item img { width: 100%; height: 40px; object-fit: contain; }
+  .logo-item-name { font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* SVG file dropzone */
+  .svg-dropzone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 20px 14px;
+    background: var(--bg);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .svg-dropzone:hover { border-color: var(--accent); color: var(--text); }
+  .svg-dropzone.has-file { border-style: solid; border-color: var(--accent); color: var(--text); }
+
+  .info-text {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Left: Banner Preview -->
+  <div class="preview-panel">
+    <div class="preview-container" id="previewContainer">
+      <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe>
+    </div>
+    <div class="preview-actions">
+      <button class="btn-download" onclick="downloadPNG()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12L3 7h3V1h4v6h3L8 12zm-6 2h12v2H2v-2z"/></svg>
+        Download PNG
+      </button>
+    </div>
+  </div>
+
+  <!-- Right: Controls -->
+  <div class="controls-panel">
+    <div class="controls-header">
+      <div class="controls-title"><span>●</span> Banner Maker</div>
+    </div>
+
+    <!-- Template Selector -->
+    <div class="template-selector" id="templateSelector">
+      <div class="section-label">Template</div>
+      <div class="tpl-trigger" id="tplTrigger" onclick="toggleDropdown()">
+        <img class="tpl-trigger-img" id="tplTriggerImg" src="" alt="" />
+        <div class="tpl-trigger-text" id="tplTriggerText">Template 1</div>
+        <svg class="tpl-trigger-arrow" width="12" height="8" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" stroke="currentColor" fill="none" stroke-width="2"/></svg>
+      </div>
+      <div class="tpl-dropdown" id="tplDropdown"></div>
+    </div>
+
+    <!-- Dynamic Fields -->
+    <div class="fields-section" id="fieldsContainer">
+    </div>
+
+    <!-- Info -->
+    <div class="info-text">
+      Edit the fields above and the banner preview will update in real-time. Click "Download PNG" to save.
+    </div>
+  </div>
+</div>
+
+<script>
+// Template definitions with fields
+const TEMPLATES = [
+  { num: 1, id: 'type-c', label: 'Text in Center — Dark v1', fields: ['title'], defaults: { title: 'The Hardware Layer of Agentic Economy', variant: 'v1' } },
+  { num: 2, id: 'type-c', label: 'Text in Center — Light v2', fields: ['title'], defaults: { title: 'Stake ADA with Everstake', variant: 'v2' } },
+  { num: 3, id: 'type-c', label: 'Text in Center — Dark v3', fields: ['title'], defaults: { title: 'Future-Proofing Proof of Stake', variant: 'v3' } },
+  { num: 4, id: 'type-c', label: 'Text in Center — Dark v4', fields: ['title'], defaults: { title: 'Stake ADA with Everstake', variant: 'v4' } },
+  { num: 5, id: 'type-e', label: 'Week in Blockchains', fields: ['dateRange'], defaults: { dateRange: 'March 30 – April 5' } },
+  { num: 6, id: 'apr', label: 'APR', fields: ['title', 'subtitle', 'logoSvg'], defaults: { title: 'Annual Percentage Rate', subtitle: 'Aptos - 7.44%' } },
+  { num: 7, id: 'collaboration', label: 'Collaboration', fields: ['logoSvg'], defaults: {} },
+  { num: 8, id: 'template-5', label: 'About Blockchain v1', fields: ['title', 'subtitle', 'partnerLogo'], defaults: { title: "Monad's Next Global Initiatives", subtitle: 'Monad Ignites the Builder Economy' } },
+  { num: 9, id: 'template-6', label: 'About Blockchain v2', fields: ['title', 'subtitle', 'partnerLogo'], defaults: { title: 'Aptos Tokenomics Explained', subtitle: 'Is Aptos Inflationary?' } },
+  { num: 10, id: 'template-7', label: 'Dark Left Panel', fields: ['title', 'subtitle', 'partnerLogo'], defaults: { title: 'Flagship Projects', subtitle: 'NEO N3' } },
+  { num: 11, id: 'template-8', label: 'Dark Right Panel', fields: ['title', 'subtitle', 'partnerLogo'], defaults: { title: 'ETH2 Batch Deposit Contract', subtitle: '' } },
+  { num: 12, id: 'template-9', label: 'Centered Logo + Title', fields: ['title', 'partnerLogo'], defaults: { title: 'Ethereum Foundation Stakes 70K ETH' } },
+  { num: 13, id: 'template-10', label: 'Dark Full', fields: ['title', 'partnerLogo'], defaults: { title: 'Monad fee change' } },
+  { num: 14, id: 'template-11', label: 'Collaboration 3 (Light)', fields: ['title', 'subtitle'], defaults: { title: 'Regulatory-Compliant Strategy', subtitle: 'Targeting 7-12% APY' } },
+  { num: 15, id: 'template-12', label: 'Collaboration 3 (Dark)', fields: ['title', 'subtitle'], defaults: { title: 'Regulatory-Compliant Strategy', subtitle: 'Targeting 7-12% APY' } },
+  { num: 16, id: 'template-13', label: 'Guide / Tutorial', fields: ['title', 'subtitle', 'partnerLogo'], defaults: { title: 'How to stake ADA using Trezor Suite', subtitle: 'Step-by-step guide' } },
+  { num: 17, id: 'template-14', label: 'Dark Partner Left', fields: ['title', 'subtitle', 'partnerLogo'], defaults: { title: "Solana's Decentralized Clock Protocol", subtitle: 'A Guide to Proof of History' } },
+  { num: 18, id: 'template-15', label: 'Dark Text Left + Icon Right', fields: ['title', 'subtitle', 'partnerLogo'], defaults: { title: 'ICON Validator Will Close', subtitle: 'Network Shrinkage' } },
+  { num: 19, id: 'template-16', label: 'Dark Guide', fields: ['title', 'partnerLogo'], defaults: { title: 'Stake ADA with Everstake' } },
+  { num: 20, id: 'template-17', label: 'Collaboration 2 Companies', fields: ['title'], defaults: { title: 'First Vault Integration Partner' } },
+  { num: 21, id: 'template-18', label: 'Wide Dark + 2 Logos', fields: ['title', 'subtitle'], defaults: { title: 'Improving Network Performance', subtitle: 'Everstake Insights:' } },
+];
+
+const FIELD_CONFIG = {
+  title: { label: 'Title', type: 'textarea', placeholder: 'Enter banner title...' },
+  subtitle: { label: 'Subtitle', type: 'input', placeholder: 'Small text above the title' },
+  dateRange: { label: 'Date Range', type: 'input', placeholder: 'e.g. March 30 – April 5' },
+  partnerLogo: { label: 'Partner Logo', type: 'logo-picker' },
+  logoSvg: { label: 'Logo (SVG, auto-recolored to brand color)', type: 'svg-file' },
+  partnerHeight: { label: 'Partner logo height (px)', type: 'slider', min: 40, max: 300, step: 1 },
+};
+
+let currentTemplate = TEMPLATES[0];
+let currentValues = {};
+let debounceTimer = null;
+
+// Init
+function init() {
+  buildDropdown();
+  selectTemplate(TEMPLATES[0].num);
+  resizePreview();
+  window.addEventListener('resize', resizePreview);
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    const sel = document.getElementById('templateSelector');
+    if (!sel.contains(e.target)) closeDropdown();
+  });
+}
+
+function buildDropdown() {
+  const dropdown = document.getElementById('tplDropdown');
+  dropdown.innerHTML = '';
+  TEMPLATES.forEach(t => {
+    const opt = document.createElement('div');
+    opt.className = 'tpl-option';
+    opt.dataset.num = t.num;
+    opt.onclick = (e) => { e.stopPropagation(); selectTemplate(t.num); closeDropdown(); };
+    opt.innerHTML = `
+      <img class="tpl-option-img" src="/previews/template-${t.num}.png" alt="" onerror="this.style.background='var(--border)'" />
+      <div class="tpl-option-text"><span class="tpl-option-num">${t.num}.</span> ${t.label}</div>
+    `;
+    dropdown.appendChild(opt);
+  });
+}
+
+function toggleDropdown() {
+  const trigger = document.getElementById('tplTrigger');
+  const dropdown = document.getElementById('tplDropdown');
+  const isOpen = dropdown.classList.contains('open');
+  if (isOpen) { closeDropdown(); } else {
+    trigger.classList.add('open');
+    dropdown.classList.add('open');
+    // Scroll selected into view
+    const sel = dropdown.querySelector('.selected');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function closeDropdown() {
+  document.getElementById('tplTrigger').classList.remove('open');
+  document.getElementById('tplDropdown').classList.remove('open');
+}
+
+function selectTemplate(num) {
+  currentTemplate = TEMPLATES.find(t => t.num === num);
+  currentValues = { ...currentTemplate.defaults };
+
+  // Update trigger
+  document.getElementById('tplTriggerImg').src = `/previews/template-${num}.png`;
+  document.getElementById('tplTriggerText').textContent = `Template ${num} — ${currentTemplate.label}`;
+
+  // Mark selected in dropdown
+  document.querySelectorAll('.tpl-option').forEach(el => {
+    el.classList.toggle('selected', parseInt(el.dataset.num) === num);
+  });
+
+  buildFields();
+  updatePreview();
+}
+
+function buildFields() {
+  const container = document.getElementById('fieldsContainer');
+  container.innerHTML = '';
+
+  currentTemplate.fields.forEach(fieldKey => {
+    const config = FIELD_CONFIG[fieldKey];
+    if (!config) return;
+
+    const group = document.createElement('div');
+    group.className = 'field-group';
+
+    if (config.type === 'logo-picker') {
+      group.innerHTML = `
+        <div class="field-label">${config.label}</div>
+        <div class="info-text" style="margin-top:0;">Logo picker requires the server to be running. Use the Slack bot or CLI for logo selection.</div>
+      `;
+    } else if (config.type === 'slider') {
+      const v = currentValues[fieldKey] || String(config.min);
+      group.innerHTML = `
+        <div class="field-label" style="display:flex;justify-content:space-between;"><span>${config.label}</span><span id="${fieldKey}-val" style="color:var(--text);">${v}</span></div>
+        <input type="range" min="${config.min}" max="${config.max}" step="${config.step || 1}" value="${v}"
+          oninput="document.getElementById('${fieldKey}-val').textContent=this.value; onFieldChange('${fieldKey}', this.value);"
+          style="width:100%;accent-color:var(--accent);" />
+      `;
+    } else if (config.type === 'svg-file') {
+      group.innerHTML = `
+        <div class="field-label">${config.label}</div>
+        <label class="svg-dropzone" id="svg-dropzone">
+          <input type="file" accept=".svg,image/svg+xml" style="display:none;" onchange="onSvgFile(this.files[0])" />
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          <span id="svg-dropzone-label">Click to choose SVG file</span>
+        </label>
+        <div class="info-text" id="svg-status" style="margin-top:8px;display:none;"></div>
+      `;
+    } else if (config.type === 'textarea') {
+      group.innerHTML = `
+        <div class="field-label">${config.label}</div>
+        <textarea class="field-input" placeholder="${config.placeholder}" oninput="onFieldChange('${fieldKey}', this.value)">${currentValues[fieldKey] || ''}</textarea>
+      `;
+    } else {
+      group.innerHTML = `
+        <div class="field-label">${config.label}</div>
+        <input class="field-input" type="text" placeholder="${config.placeholder}" value="${currentValues[fieldKey] || ''}" oninput="onFieldChange('${fieldKey}', this.value)" />
+      `;
+    }
+
+    container.appendChild(group);
+  });
+}
+
+function onFieldChange(key, value) {
+  currentValues[key] = value;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(updatePreview, 300);
+}
+
+async function onSvgFile(file) {
+  const status = document.getElementById('svg-status');
+  const dropzone = document.getElementById('svg-dropzone');
+  const label = document.getElementById('svg-dropzone-label');
+  if (!file) return;
+  if (!/svg/i.test(file.type) && !/\.svg$/i.test(file.name)) {
+    if (status) { status.style.display = 'block'; status.textContent = 'Please choose an SVG file.'; }
+    return;
+  }
+  if (label) label.textContent = file.name;
+  if (status) { status.style.display = 'block'; status.textContent = 'Uploading SVG…'; }
+  try {
+    const text = await file.text();
+    if (!/<svg[\s>]/i.test(text)) throw new Error('File does not contain an <svg> element');
+    const resp = await fetch('/svg', { method: 'POST', headers: { 'Content-Type': 'image/svg+xml' }, body: text });
+    const data = await resp.json();
+    if (!resp.ok || data.error) throw new Error(data.error || 'upload failed');
+    if (status) status.textContent = 'SVG ready (recolored to #40C1AC)';
+    if (dropzone) dropzone.classList.add('has-file');
+    currentValues.svgId = data.id;
+    updatePreview();
+  } catch (err) {
+    if (status) status.textContent = `Error: ${err.message}`;
+    currentValues.svgId = '';
+    updatePreview();
+  }
+}
+
+function updatePreview() {
+  const { logoSvg: _ignored, ...rest } = currentValues;
+  const params = new URLSearchParams({ templateId: currentTemplate.id, ...rest });
+  document.getElementById('previewFrame').src = `/render?${params.toString()}`;
+}
+
+function resizePreview() {
+  const container = document.getElementById('previewContainer');
+  const iframe = document.getElementById('previewFrame');
+  const containerWidth = container.clientWidth;
+  const scale = containerWidth / 1600;
+  iframe.style.transform = `scale(${scale})`;
+  container.style.height = `${900 * scale}px`;
+}
+
+async function downloadPNG() {
+  const { logoSvg: _ignored, ...rest } = currentValues;
+  const params = new URLSearchParams({
+    templateId: currentTemplate.id,
+    ...rest,
+    format: 'png',
+  });
+
+  try {
+    const resp = await fetch(`/render?${params.toString()}&download=1`);
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `banner-template-${currentTemplate.num}-${Date.now()}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Download failed. Make sure the server is running.');
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

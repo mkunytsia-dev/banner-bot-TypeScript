@@ -2,6 +2,7 @@ node_modules/
 output/
 .env
 .DS_Store
+assets/logos/cache/
 APR background/
 Bacgrounds for v2/
 Collaboration background/
