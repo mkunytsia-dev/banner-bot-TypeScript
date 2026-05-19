@@ -54,4 +54,4 @@ EXPOSE 3000
 
 # Use tini as PID 1 so Chromium subprocesses get reaped on shutdown.
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["npm", "start"]
+CMD ["npm", "run", "web"]

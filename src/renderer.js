@@ -43,7 +43,12 @@ async function getBrowser() {
   if (!browser) {
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage', // small /dev/shm on Railway containers
+        '--disable-gpu',
+      ],
     });
   }
   return browser;
