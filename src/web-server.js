@@ -84,9 +84,15 @@ async function handleRender(res, query) {
   for (const key of passthrough) {
     if (query[key]) params[key] = query[key];
   }
-  // Resolve SVG by id (stored via POST /svg)
+  // Resolve SVG by id (stored via POST /svg). Supports single (svgId) and numbered slots (svgId1, svgId2, …).
   if (query.svgId && svgStore.has(query.svgId)) {
     params.logoSvg = svgStore.get(query.svgId);
+  }
+  for (const key of Object.keys(query)) {
+    const m = key.match(/^svgId(\d+)$/);
+    if (m && svgStore.has(query[key])) {
+      params['logoSvg' + m[1]] = svgStore.get(query[key]);
+    }
   }
 
   // For templates that benefit from rasterized partner logos (eliminates SVG sizing quirks),

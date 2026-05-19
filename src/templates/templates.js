@@ -450,12 +450,13 @@ function typeF({ title, subtitle, partnerLogo, rightImage, theme = 'light' }) {
 // Template 5: About Blockchain — split layout, text left, partner logo right
 // Figma: DES-283 (about blockchain - v1)
 // ============================================
-function template5({ title, subtitle, partnerLogo }) {
+function template5({ title, subtitle, logoSvg }) {
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#034638', '#F5FFFD') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t5-logo-slot svg { width:580px !important; height:auto !important; max-height:818px; display:block; }
   </style></head><body>
     <div class="banner" style="background:#f5fffd;color:#034638;">
 
@@ -472,18 +473,16 @@ function template5({ title, subtitle, partnerLogo }) {
       <!-- Everstake logo: x=56 y=56 h=40 -->
       <img src="${everstakeLogo}" style="position:absolute;top:56px;left:56px;height:40px;z-index:10;" />
 
-      <!-- Subtitle: x=56 y=580, 20px w500 uppercase -->
-      ${subtitle ? `<div style="position:absolute;left:56px;top:580px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
-
-      <!-- Title: x=56 y=644, 96px w200, max-width 700px with auto-fit -->
-      <div id="title-container" style="position:absolute;left:56px;top:644px;width:700px;height:220px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
+      <!-- Text block: 56px from left+bottom, 676×300, 40px gap between subtitle and title -->
+      <div id="title-container" style="position:absolute;left:56px;bottom:56px;width:676px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;gap:40px;">
+        ${subtitle ? `<div id="subtitle" style="font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.2;">${subtitle}</div>` : ''}
+        <div id="title" data-max-size="96" data-min-size="24" style="font-weight:200;line-height:1.04;">${title}</div>
       </div>
 
-      <!-- Right side: partner logo centered -->
-      ${partnerLogoSrc ? `
+      <!-- Right side: partner logo, max-width 440 -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:800px;top:0;width:800px;height:900px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${partnerLogoSrc}" style="max-width:750px;max-height:650px;width:auto;height:auto;" />
+          <div class="t5-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
     </div>
@@ -494,12 +493,13 @@ function template5({ title, subtitle, partnerLogo }) {
 // Template 6: About Blockchain v2 — mirror of template-5
 // Partner logo left, text right
 // ============================================
-function template6({ title, subtitle, partnerLogo }) {
+function template6({ title, subtitle, logoSvg }) {
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#034638', '#F5FFFD') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t6-logo-slot svg { width:580px !important; height:auto !important; max-height:818px; display:block; }
   </style></head><body>
     <div class="banner" style="background:#f5fffd;color:#034638;">
 
@@ -513,22 +513,20 @@ function template6({ title, subtitle, partnerLogo }) {
       <div style="position:absolute;left:1336px;top:-400px;width:664px;height:770px;border-radius:50%;filter:blur(200px);z-index:0;
         background:linear-gradient(180deg, rgba(64,193,172,0.40), rgba(130,230,180,1.0));"></div>
 
-      <!-- Partner logo centered in left panel -->
-      ${partnerLogoSrc ? `
+      <!-- Partner logo centered in left panel, max-width 580 -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:0;top:0;width:800px;height:900px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${partnerLogoSrc}" style="max-width:500px;max-height:300px;width:auto;height:auto;" />
+          <div class="t6-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
 
-      <!-- Everstake logo: x=856 y=56 -->
+      <!-- Everstake logo top-right area: x=856 y=56 (mirrors template 5) -->
       <img src="${everstakeLogo}" style="position:absolute;top:56px;left:856px;height:40px;z-index:10;" />
 
-      <!-- Subtitle: x=856 y=521, 20px w500 uppercase -->
-      ${subtitle ? `<div style="position:absolute;left:856px;top:521px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
-
-      <!-- Title: x=856 y=577, 86px w200, max-width 688px with auto-fit -->
-      <div id="title-container" style="position:absolute;left:856px;top:577px;width:688px;height:280px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:86px;line-height:1.08;">${title}</div>
+      <!-- Text block: 56px from right+bottom, 676×300, 40px gap between subtitle and title -->
+      <div id="title-container" style="position:absolute;right:56px;bottom:56px;width:676px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;gap:40px;">
+        ${subtitle ? `<div id="subtitle" style="font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.2;">${subtitle}</div>` : ''}
+        <div id="title" data-max-size="96" data-min-size="24" style="font-weight:200;line-height:1.04;">${title}</div>
       </div>
     </div>
   </body></html>`;
@@ -538,12 +536,13 @@ function template6({ title, subtitle, partnerLogo }) {
 // Template 7: Dark left panel + partner logo right
 // Figma: DES-301 (Neo N3 Flagship Projects)
 // ============================================
-function template7({ title, subtitle, partnerLogo }) {
+function template7({ title, subtitle, logoSvg }) {
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#034638', '#F5FFFD') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t7-logo-slot svg { width:550px !important; height:auto !important; max-height:818px; display:block; }
   </style></head><body>
     <div class="banner" style="background:#f5fffd;">
 
@@ -557,18 +556,16 @@ function template7({ title, subtitle, partnerLogo }) {
       <!-- Everstake logo white: x=48 y=48 -->
       <img src="${everstakeLogo}" style="position:absolute;top:48px;left:48px;height:40px;z-index:10;" />
 
-      <!-- Subtitle: x=48 y=494, 28px w500, white -->
-      ${subtitle ? `<div style="position:absolute;left:48px;top:494px;z-index:5;font-weight:500;font-size:28px;color:#f5fffd;">${subtitle}</div>` : ''}
-
-      <!-- Title: x=48 y=560, 140px w250, white, auto-fit -->
-      <div id="title-container" style="position:absolute;left:48px;top:560px;width:700px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:140px;line-height:1.04;color:#f5fffd;">${title}</div>
+      <!-- Text block: 48px from left+bottom, 704×375, 32px gap between subtitle and title -->
+      <div id="title-container" style="position:absolute;left:48px;bottom:48px;width:704px;height:375px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;gap:32px;">
+        ${subtitle ? `<div id="subtitle" style="font-weight:500;font-size:28px;color:#f5fffd;line-height:1.2;">${subtitle}</div>` : ''}
+        <div id="title" data-max-size="120" data-min-size="24" style="font-weight:200;line-height:1.04;color:#f5fffd;">${title}</div>
       </div>
 
-      <!-- Right side: partner logo centered -->
-      ${partnerLogoSrc ? `
+      <!-- Right side: partner logo centered, max-width 440 -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:800px;top:0;width:800px;height:900px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${partnerLogoSrc}" style="max-width:500px;max-height:300px;width:auto;height:auto;" />
+          <div class="t7-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
     </div>
@@ -579,12 +576,13 @@ function template7({ title, subtitle, partnerLogo }) {
 // Template 8: Text left, dark right panel with partner logo
 // Figma: DES-313 — mirror of template-7
 // ============================================
-function template8({ title, subtitle, partnerLogo }) {
+function template8({ title, subtitle, logoSvg }) {
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t8-logo-slot svg { width:550px !important; height:auto !important; max-height:818px; display:block; }
   </style></head><body>
     <div class="banner" style="background:#f5fffd;color:#034638;">
 
@@ -602,18 +600,16 @@ function template8({ title, subtitle, partnerLogo }) {
       <!-- Everstake logo dark: x=48 y=48 -->
       <img src="${everstakeLogo}" style="position:absolute;top:48px;left:48px;height:40px;z-index:10;" />
 
-      <!-- Subtitle -->
-      ${subtitle ? `<div style="position:absolute;left:48px;top:530px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
-
-      <!-- Title: x=48 y=576, 88px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:48px;top:576px;width:704px;height:280px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:88px;line-height:1.04;">${title}</div>
+      <!-- Text block: 48px from left+bottom, 704×375, 32px gap between subtitle and title -->
+      <div id="title-container" style="position:absolute;left:48px;bottom:48px;width:704px;height:375px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;gap:32px;">
+        ${subtitle ? `<div id="subtitle" style="font-weight:500;font-size:28px;color:#034638;line-height:1.2;">${subtitle}</div>` : ''}
+        <div id="title" data-max-size="120" data-min-size="24" style="font-weight:200;line-height:1.04;color:#034638;">${title}</div>
       </div>
 
-      <!-- Partner logo centered in right dark panel (white/light color) -->
-      ${partnerLogoSrc ? `
+      <!-- Partner logo centered in right dark panel, max-width 550, light color -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:800px;top:0;width:800px;height:900px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${partnerLogoSrc}" style="max-width:500px;max-height:300px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+          <div class="t8-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
     </div>
@@ -624,22 +620,23 @@ function template8({ title, subtitle, partnerLogo }) {
 // Template 9: Centered layout — logo top, title bottom, grid lines
 // Figma: DES-312 (Ethereum Foundation)
 // ============================================
-function template9({ title, partnerLogo }) {
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+function template9({ title, logoSvg }) {
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#034638', '#F5FFFD') : '';
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-9.png'));
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t9-logo-slot svg { height:80px !important; width:auto !important; display:block; }
   </style></head><body>
     <div class="banner" style="color:#034638;">
 
       <!-- Figma background -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Partner logo: centered between y=141..351 -->
-      ${partnerLogoSrc ? `
+      <!-- Partner logo: centered between y=141..351, max-height 80 -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:0;top:143px;width:1600px;height:208px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${partnerLogoSrc}" style="max-height:80px;width:auto;" />
+          <div class="t9-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
 
@@ -655,13 +652,14 @@ function template9({ title, partnerLogo }) {
 // Template 10: Dark full — everstake logo top-left, title bottom-left, partner logo right (all white)
 // Figma: DES-351
 // ============================================
-function template10({ title, partnerLogo }) {
+function template10({ title, logoSvg }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-10.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
-  const partnerLogoSrc = getPartnerLogo(partnerLogo);
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t10-logo-slot svg { width:450px !important; height:auto !important; max-height:450px; display:block; }
   </style></head><body>
     <div class="banner" style="color:#f5fffd;">
       <!-- Background -->
@@ -675,10 +673,10 @@ function template10({ title, partnerLogo }) {
         <div id="title" style="font-weight:200;font-size:132px;line-height:1.04;">${title}</div>
       </div>
 
-      <!-- Partner logo white, centered in right area (x=801..1560, y=40..860) -->
-      ${partnerLogoSrc ? `
+      <!-- Partner logo (light), centered in right area (x=801..1560, y=40..860) -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:801px;top:40px;width:759px;height:820px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${partnerLogoSrc}" style="max-width:436px;max-height:440px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+          <div class="t10-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
     </div>
@@ -689,14 +687,15 @@ function template10({ title, partnerLogo }) {
 // Template 11: Collaboration 3 companies — title left, 3 logos right
 // Figma: Collaboration - 3 company
 // ============================================
-function template11({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 }) {
+function template11({ title, subtitle, logoSvg1, logoSvg2, logoSvg3 }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-11.png'));
-  const logo1Src = partnerLogo1 ? getPartnerLogo(partnerLogo1) : '';
-  const logo2Src = partnerLogo2 ? getPartnerLogo(partnerLogo2) : '';
-  const logo3Src = partnerLogo3 ? getPartnerLogo(partnerLogo3) : '';
+  const svg1 = logoSvg1 ? recolorSvg(logoSvg1, '#034638', '#F5FFFD') : '';
+  const svg2 = logoSvg2 ? recolorSvg(logoSvg2, '#034638', '#F5FFFD') : '';
+  const svg3 = logoSvg3 ? recolorSvg(logoSvg3, '#034638', '#F5FFFD') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t11-logo-slot svg { width:440px !important; height:auto !important; max-height:200px; display:block; }
   </style></head><body>
     <div class="banner" style="color:#034638;">
       <!-- Background -->
@@ -711,23 +710,23 @@ function template11({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 
       ${subtitle ? `<div style="position:absolute;left:82px;top:769px;z-index:5;font-weight:500;font-size:44px;color:#7b9690;">${subtitle}</div>` : ''}
 
       <!-- Logo 1: centered in (940..1560, 40..291) -->
-      ${logo1Src ? `
+      ${svg1 ? `
         <div style="position:absolute;left:940px;top:40px;width:620px;height:251px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo1Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+          <div class="t11-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg1}</div>
         </div>
       ` : ''}
 
       <!-- Logo 2: centered in (940..1560, 293..576) -->
-      ${logo2Src ? `
+      ${svg2 ? `
         <div style="position:absolute;left:940px;top:293px;width:620px;height:283px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo2Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+          <div class="t11-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg2}</div>
         </div>
       ` : ''}
 
       <!-- Logo 3: centered in (940..1560, 578..860) -->
-      ${logo3Src ? `
+      ${svg3 ? `
         <div style="position:absolute;left:940px;top:578px;width:620px;height:282px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo3Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+          <div class="t11-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg3}</div>
         </div>
       ` : ''}
     </div>
@@ -738,14 +737,15 @@ function template11({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 
 // Template 12: Dark Collaboration 3 companies — dark bg, white text left, 3 logos right
 // Figma: Collaboration - 3 company (dark)
 // ============================================
-function template12({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 }) {
+function template12({ title, subtitle, logoSvg1, logoSvg2, logoSvg3 }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-12.png'));
-  const logo1Src = partnerLogo1 ? getPartnerLogo(partnerLogo1) : '';
-  const logo2Src = partnerLogo2 ? getPartnerLogo(partnerLogo2) : '';
-  const logo3Src = partnerLogo3 ? getPartnerLogo(partnerLogo3) : '';
+  const svg1 = logoSvg1 ? recolorSvg(logoSvg1, '#F5FFFD', '#034638') : '';
+  const svg2 = logoSvg2 ? recolorSvg(logoSvg2, '#F5FFFD', '#034638') : '';
+  const svg3 = logoSvg3 ? recolorSvg(logoSvg3, '#F5FFFD', '#034638') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t12-logo-slot svg { width:440px !important; height:auto !important; max-height:200px; display:block; }
   </style></head><body>
     <div class="banner" style="color:#f5fffd;">
       <!-- Background -->
@@ -759,24 +759,24 @@ function template12({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 
       <!-- Subtitle: x=82 y=769, 44px, #7b9690 -->
       ${subtitle ? `<div style="position:absolute;left:82px;top:769px;z-index:5;font-weight:500;font-size:44px;color:#7b9690;">${subtitle}</div>` : ''}
 
-      <!-- Logo 1: centered in (940..1560, 40..291), white -->
-      ${logo1Src ? `
+      <!-- Logo 1: centered in (940..1560, 40..291), light -->
+      ${svg1 ? `
         <div style="position:absolute;left:940px;top:40px;width:620px;height:251px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo1Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+          <div class="t12-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg1}</div>
         </div>
       ` : ''}
 
-      <!-- Logo 2: centered in (940..1560, 293..576), white -->
-      ${logo2Src ? `
+      <!-- Logo 2: centered in (940..1560, 293..576), light -->
+      ${svg2 ? `
         <div style="position:absolute;left:940px;top:293px;width:620px;height:283px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo2Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+          <div class="t12-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg2}</div>
         </div>
       ` : ''}
 
-      <!-- Logo 3: centered in (940..1560, 578..860), white -->
-      ${logo3Src ? `
+      <!-- Logo 3: centered in (940..1560, 578..860), light -->
+      ${svg3 ? `
         <div style="position:absolute;left:940px;top:578px;width:620px;height:282px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo3Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+          <div class="t12-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg3}</div>
         </div>
       ` : ''}
     </div>
@@ -787,40 +787,32 @@ function template12({ title, subtitle, partnerLogo1, partnerLogo2, partnerLogo3 
 // Template 13: Guide/Tutorial — everstake x partner top, subtitle + title left, crypto icon right
 // Figma: DES-294
 // ============================================
-function template13({ title, subtitle, partnerLogo, cryptoIcon }) {
+function template13({ title, subtitle, logoSvg }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-13.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
-  const partnerLogoSrc = partnerLogo ? getPartnerLogo(partnerLogo) : '';
-  const cryptoIconSrc = cryptoIcon ? getPartnerLogo(cryptoIcon) : '';
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#40C1AC', '#F5FFFD') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t13-logo-slot svg { width:550px !important; height:auto !important; max-height:580px; display:block; }
   </style></head><body>
     <div class="banner" style="color:#034638;">
       <!-- Background -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Top: everstake x partner logos -->
-      <div style="position:absolute;left:82px;top:82px;display:flex;align-items:center;gap:20px;z-index:10;">
-        <img src="${everstakeLogo}" style="height:40px;" />
-        ${partnerLogoSrc ? `
-          <span style="font-size:18px;color:#7b9690;">x</span>
-          <img src="${partnerLogoSrc}" style="height:40px;width:auto;" />
-        ` : ''}
+      <!-- Top: everstake logo -->
+      <img src="${everstakeLogo}" style="position:absolute;top:82px;left:82px;height:40px;z-index:10;" />
+
+      <!-- Text block: subtitle UPPERCASE + title, 24px gap, justify-end -->
+      <div id="title-container" style="position:absolute;left:82px;top:518px;width:654px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;gap:24px;">
+        ${subtitle ? `<div id="subtitle" style="font-weight:500;font-size:22px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.2;">${subtitle}</div>` : ''}
+        <div id="title" data-max-size="96" data-min-size="24" style="font-weight:200;line-height:1.04;">${title}</div>
       </div>
 
-      <!-- Subtitle: x=82 y=468, 22px -->
-      ${subtitle ? `<div style="position:absolute;left:82px;top:468px;z-index:5;font-weight:500;font-size:22px;letter-spacing:0.05em;">${subtitle}</div>` : ''}
-
-      <!-- Title: x=82 y=518, 96px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:82px;top:518px;width:654px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
-      </div>
-
-      <!-- Crypto icon centered in right panel -->
-      ${cryptoIconSrc ? `
+      <!-- Partner logo centered in right panel, max-width 450 -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:800px;top:40px;width:760px;height:820px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${cryptoIconSrc}" style="max-width:480px;max-height:480px;width:auto;height:auto;" />
+          <div class="t13-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
     </div>
@@ -831,34 +823,33 @@ function template13({ title, subtitle, partnerLogo, cryptoIcon }) {
 // Template 14: Dark — partner logo left panel, text right (white)
 // Figma: DES-286 (Solana)
 // ============================================
-function template14({ title, subtitle, partnerLogo }) {
+function template14({ title, subtitle, logoSvg }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-14.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
-  const partnerLogoSrc = partnerLogo ? getPartnerLogo(partnerLogo) : '';
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t14-logo-slot svg { width:550px !important; height:auto !important; max-height:580px; display:block; }
   </style></head><body>
     <div class="banner" style="color:#f5fffd;">
       <!-- Background -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Partner logo centered in left panel (40..799, 40..860), white -->
-      ${partnerLogoSrc ? `
+      <!-- Partner logo centered in left panel (40..799, 40..860), light -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:40px;top:40px;width:759px;height:820px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${partnerLogoSrc}" style="max-width:600px;max-height:300px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+          <div class="t14-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
 
       <!-- Everstake logo white: x=855 y=82 -->
       <img src="${everstakeLogo}" style="position:absolute;top:82px;left:855px;height:40px;z-index:10;" />
 
-      <!-- Subtitle: x=855 y=470, 20px -->
-      ${subtitle ? `<div style="position:absolute;left:855px;top:470px;z-index:5;font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;">${subtitle}</div>` : ''}
-
-      <!-- Title: x=855 y=526, 96px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:855px;top:526px;width:655px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
+      <!-- Text block: subtitle + title, 32px gap, justify-end -->
+      <div id="title-container" style="position:absolute;left:855px;top:526px;width:655px;height:300px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;gap:32px;">
+        ${subtitle ? `<div id="subtitle" style="font-weight:500;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.2;">${subtitle}</div>` : ''}
+        <div id="title" data-max-size="96" data-min-size="24" style="font-weight:200;line-height:1.04;">${title}</div>
       </div>
     </div>
   </body></html>`;
@@ -868,13 +859,14 @@ function template14({ title, subtitle, partnerLogo }) {
 // Template 15: Dark — text left, partner icon right panel
 // Figma: DES-322
 // ============================================
-function template15({ title, subtitle, partnerLogo }) {
+function template15({ title, subtitle, logoSvg }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-15.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
-  const partnerLogoSrc = partnerLogo ? getPartnerLogo(partnerLogo) : '';
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t15-logo-slot svg { width:550px !important; height:auto !important; max-height:580px; display:block; }
   </style></head><body>
     <div class="banner" style="color:#f5fffd;">
       <!-- Background -->
@@ -891,10 +883,10 @@ function template15({ title, subtitle, partnerLogo }) {
       <!-- Subtitle: x=82 y=775, 38px, #7b9690 -->
       ${subtitle ? `<div style="position:absolute;left:82px;top:775px;z-index:5;font-weight:500;font-size:38px;color:#7b9690;">${subtitle}</div>` : ''}
 
-      <!-- Partner icon centered in right panel (801..1560, 40..860), white -->
-      ${partnerLogoSrc ? `
+      <!-- Partner icon centered in right panel (801..1560, 40..860), light -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:801px;top:40px;width:759px;height:820px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${partnerLogoSrc}" style="max-width:480px;max-height:480px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+          <div class="t15-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
     </div>
@@ -905,38 +897,32 @@ function template15({ title, subtitle, partnerLogo }) {
 // Template 16: Dark Guide — icon left panel, everstake x partner + title right
 // Figma: DES-286 (Cardano/Trezor)
 // ============================================
-function template16({ title, partnerLogo, cryptoIcon }) {
+function template16({ title, logoSvg }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-14.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
-  const partnerLogoSrc = partnerLogo ? getPartnerLogo(partnerLogo) : '';
-  const cryptoIconSrc = cryptoIcon ? getPartnerLogo(cryptoIcon) : '';
+  const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t16-logo-slot svg { width:550px !important; height:auto !important; max-height:580px; display:block; }
   </style></head><body>
     <div class="banner" style="color:#f5fffd;">
       <!-- Background (reuse template-14 bg) -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Crypto icon centered in left panel (40..799, 40..860), white -->
-      ${cryptoIconSrc ? `
+      <!-- Partner logo centered in left panel (40..799, 40..860), light -->
+      ${recoloredSvg ? `
         <div style="position:absolute;left:40px;top:40px;width:759px;height:820px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${cryptoIconSrc}" style="max-width:480px;max-height:480px;width:auto;height:auto;filter:brightness(0) invert(1);" />
+          <div class="t16-logo-slot" style="display:flex;align-items:center;justify-content:center;">${recoloredSvg}</div>
         </div>
       ` : ''}
 
-      <!-- Top right: everstake x partner logos -->
-      <div style="position:absolute;left:855px;top:100px;display:flex;align-items:center;gap:20px;z-index:10;">
-        <img src="${everstakeLogo}" style="height:40px;" />
-        ${partnerLogoSrc ? `
-          <span style="font-size:18px;color:#7b9690;">x</span>
-          <img src="${partnerLogoSrc}" style="height:40px;width:auto;filter:brightness(0) invert(1);" />
-        ` : ''}
-      </div>
+      <!-- Everstake logo top right: x=855 y=100 -->
+      <img src="${everstakeLogo}" style="position:absolute;top:100px;left:855px;height:40px;z-index:10;" />
 
-      <!-- Title: x=855 y=530, 92px, auto-fit -->
+      <!-- Title: x=855 y=530, max 96px, auto-fit -->
       <div id="title-container" style="position:absolute;left:855px;top:530px;width:647px;height:288px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:92px;line-height:1.04;">${title}</div>
+        <div id="title" data-max-size="96" data-min-size="24" style="font-weight:200;line-height:1.04;">${title}</div>
       </div>
     </div>
   </body></html>`;
@@ -946,34 +932,35 @@ function template16({ title, partnerLogo, cryptoIcon }) {
 // Template 17: Collaboration 2 companies — title left, 2 logos stacked right
 // Figma: DES-320 (Everstake + Sats Terminal)
 // ============================================
-function template17({ title, partnerLogo1, partnerLogo2 }) {
+function template17({ title, logoSvg1, logoSvg2 }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-17.png'));
-  const logo1Src = partnerLogo1 ? getPartnerLogo(partnerLogo1) : '';
-  const logo2Src = partnerLogo2 ? getPartnerLogo(partnerLogo2) : '';
+  const svg1 = logoSvg1 ? recolorSvg(logoSvg1, '#034638', '#F5FFFD') : '';
+  const svg2 = logoSvg2 ? recolorSvg(logoSvg2, '#034638', '#F5FFFD') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t17-logo-slot svg { width:440px !important; height:auto !important; max-height:300px; display:block; }
   </style></head><body>
     <div class="banner" style="color:#034638;">
       <!-- Background -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Title: x=82 y=418, 96px, auto-fit -->
-      <div id="title-container" style="position:absolute;left:82px;top:418px;width:810px;height:400px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;">${title}</div>
+      <!-- Text block: 82px from left+bottom, 810×400, title max 96px -->
+      <div id="title-container" style="position:absolute;left:82px;bottom:82px;width:810px;height:400px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
+        <div id="title" data-max-size="96" data-min-size="24" style="font-weight:200;line-height:1.04;">${title}</div>
       </div>
 
-      <!-- Logo 1: centered in (940..1560, 40..449) -->
-      ${logo1Src ? `
+      <!-- Logo 1: y=40..449 -->
+      ${svg1 ? `
         <div style="position:absolute;left:940px;top:40px;width:620px;height:409px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo1Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+          <div class="t17-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg1}</div>
         </div>
       ` : ''}
 
-      <!-- Logo 2: centered in (940..1560, 451..860) -->
-      ${logo2Src ? `
+      <!-- Logo 2: y=451..860 -->
+      ${svg2 ? `
         <div style="position:absolute;left:940px;top:451px;width:620px;height:409px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo2Src}" style="max-width:479px;max-height:100px;width:auto;height:auto;" />
+          <div class="t17-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg2}</div>
         </div>
       ` : ''}
     </div>
@@ -1029,37 +1016,36 @@ function typeCollaboration({ partnerLogoRaster, partnerLogoRasterW, partnerLogoR
 // Template 18: Wide dark left + 2 logos right (light)
 // Figma: DES-306 variant (Solana/DoubleZero)
 // ============================================
-function template18({ title, subtitle, partnerLogo1, partnerLogo2 }) {
+function template18({ title, subtitle, logoSvg1, logoSvg2 }) {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-18.png'));
-  const logo1Src = partnerLogo1 ? getPartnerLogo(partnerLogo1) : '';
-  const logo2Src = partnerLogo2 ? getPartnerLogo(partnerLogo2) : '';
+  const svg1 = logoSvg1 ? recolorSvg(logoSvg1, '#034638', '#F5FFFD') : '';
+  const svg2 = logoSvg2 ? recolorSvg(logoSvg2, '#034638', '#F5FFFD') : '';
 
   return `<!DOCTYPE html><html><head><style>
     ${baseStyles()}
+    .t18-logo-slot svg { width:440px !important; height:auto !important; max-height:300px; display:block; }
   </style></head><body>
     <div class="banner">
       <!-- Background -->
       <img src="${bgSrc}" style="position:absolute;top:0;left:0;width:1600px;height:900px;z-index:0;" />
 
-      <!-- Subtitle: x=48 y=379, 40px, #7b9690 -->
-      ${subtitle ? `<div style="position:absolute;left:48px;top:379px;z-index:5;font-weight:500;font-size:40px;color:#7b9690;">${subtitle}</div>` : ''}
-
-      <!-- Title: x=48 y=448, 96px, white, auto-fit -->
-      <div id="title-container" style="position:absolute;left:48px;top:448px;width:884px;height:400px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;">
-        <div id="title" style="font-weight:200;font-size:96px;line-height:1.04;color:#f5fffd;">${title}</div>
+      <!-- Text block: 48px from left+bottom, 884×400, gap 24 between subtitle and title -->
+      <div id="title-container" style="position:absolute;left:48px;bottom:48px;width:884px;height:400px;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;gap:24px;">
+        ${subtitle ? `<div id="subtitle" style="font-weight:500;font-size:40px;color:#7b9690;line-height:1.2;">${subtitle}</div>` : ''}
+        <div id="title" data-max-size="96" data-min-size="24" style="font-weight:200;line-height:1.04;color:#f5fffd;">${title}</div>
       </div>
 
-      <!-- Logo 1: centered in (980..1600, 0..448) -->
-      ${logo1Src ? `
-        <div style="position:absolute;left:980px;top:2px;width:620px;height:446px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo1Src}" style="max-width:438px;max-height:100px;width:auto;height:auto;" />
+      <!-- Logo 1: centered in light right panel (x≈965..1600) -->
+      ${svg1 ? `
+        <div style="position:absolute;left:965px;top:40px;width:635px;height:409px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <div class="t18-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg1}</div>
         </div>
       ` : ''}
 
-      <!-- Logo 2: centered in (980..1600, 450..898) -->
-      ${logo2Src ? `
-        <div style="position:absolute;left:980px;top:450px;width:620px;height:448px;display:flex;align-items:center;justify-content:center;z-index:5;">
-          <img src="${logo2Src}" style="max-width:450px;max-height:100px;width:auto;height:auto;" />
+      <!-- Logo 2 -->
+      ${svg2 ? `
+        <div style="position:absolute;left:965px;top:451px;width:635px;height:409px;display:flex;align-items:center;justify-content:center;z-index:5;">
+          <div class="t18-logo-slot" style="display:flex;align-items:center;justify-content:center;">${svg2}</div>
         </div>
       ` : ''}
     </div>

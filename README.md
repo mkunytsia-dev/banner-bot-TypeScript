@@ -162,20 +162,44 @@ npm run web
 Opens at `http://localhost:3000`. Pick a template, edit fields, live preview in an iframe, click **Download PNG**.
 
 Key behaviors:
-- **Auto-fit title** — `#title` inside `#title-container` binary-searches font-size between `data-min-size` and `data-max-size` to fit the fixed box.
-- **SVG logo upload** — click the dropzone, pick an `.svg`, server stores it (`POST /svg` → id), then `/render?...&svgId=<id>` resolves it.
-- **Recolor** — server-side regex replaces fills with template-specific brand colors. Preserves `fill="none"` / `transparent`; maps white (`#fff`, `white`) to the secondary tone (`#F5FFFD`).
-- **Raster pipeline** — for templates where SVG sizing is brittle (currently `collaboration`), `web-server.js` rasterizes the recolored SVG via Puppeteer to a cached PNG (`assets/logos/cache/raster-<hash>.png`, gitignored) at the target dimensions, then the template `<img>`s it.
+- **Auto-fit title** — `#title` inside `#title-container` binary-searches font-size between `data-min-size` and `data-max-size` to fit the fixed box. Siblings (subtitle) keep their CSS size and contribute to the height constraint via `getBoundingClientRect()`.
+- **SVG logo upload** — click the dropzone, pick an `.svg`, server stores it (`POST /svg` → id). Multi-slot templates have separate dropzones; field key `logoSvg` resolves to `svgId`, and `logoSvgN` resolves to `svgIdN`.
+- **Recolor** — server-side regex replaces fills with template-specific brand colors. `fill="none"` / `transparent` is preserved (true cutouts), white (`#fff` / `white` / `rgb(255,255,255)`) is remapped to the secondary tone (`#F5FFFD`), everything else becomes the primary color. Also handles `stop-color` inside gradients.
+- **Raster pipeline** — for templates where inline-SVG sizing is brittle (currently `collaboration`), `web-server.js` calls `rasterizeSvg(svg, w, h)` (Puppeteer screenshot at 2x DPR) and caches the result at `assets/logos/cache/raster-<sha1>.png`. The template then uses a plain `<img>` for reliable sizing.
 
 ### HTTP endpoints
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | `GET`  | `/` | UI |
-| `GET`  | `/render?templateId=...&...` | HTML preview (used by iframe); `&download=1` returns PNG |
+| `GET`  | `/render?templateId=...&svgId=...&svgId1=...&svgId2=...&svgId3=...` | HTML preview (used by iframe); `&download=1` returns PNG |
 | `POST` | `/svg` | Upload SVG body (`Content-Type: image/svg+xml`); returns `{ id }` |
 | `GET`  | `/previews/template-<N>.png` | Template thumbnails |
 | `GET`  | `/healthz` | Liveness |
+
+### Per-template specs (web maker)
+
+All text blocks use the same pattern: fixed bounding box, `display:flex; flex-direction:column; justify-content:flex-end`, optional `gap` between subtitle and title, title auto-fits with `data-max-size` / `data-min-size`. Logos are SVG uploads, recolored at render time.
+
+| # | id | Text block | Title max | Subtitle | Logo(s) | Recolor |
+|---|----|-----------|-----------|----------|---------|---------|
+| 1–4  | `type-c` (v1–v4) | 1004×304 centered | 120 | — | — | — |
+| 6 | `apr` | 810×348 @ 82 from left+bottom, gap 24 | 112 | 44 fixed | 1× SVG, w 440, right | `#40C1AC` |
+| 7 | `collaboration` | — | — | — | 1× SVG (raster), h 80, left of "x" symbol; everstake h 80 left | `#034638` |
+| 8 | `template-5` | 676×300 @ 56 from left+bottom, gap 40 | 96 | 20 fixed (uppercase) | 1× SVG, w 580, right | `#034638` |
+| 9 | `template-6` | 676×300 @ 56 from right+bottom, gap 40 | 96 | 20 fixed (uppercase) | 1× SVG, w 580, left | `#034638` |
+| 10 | `template-7` | 704×375 @ 48 from left+bottom, gap 32 | 120 (white) | 28 fixed (white) | 1× SVG, w 550, right | `#034638` |
+| 11 | `template-8` | 704×375 @ 48 from left+bottom, gap 32 | 120 | 28 fixed | 1× SVG, w 550, right (dark panel) | `#F5FFFD` |
+| 12 | `template-9` | 968×340 centered | 88 | — | 1× SVG, h 80, top center | `#034638` |
+| 13 | `template-10` | 663×274 (dark full) | 132 (white) | — | 1× SVG, w 450, right | `#F5FFFD` |
+| 14 | `template-11` | 810×267 | 86 | 44 fixed | 3× SVG, w 440, stacked right | `#034638` |
+| 15 | `template-12` | 810×267 (dark) | 86 (white) | 44 fixed | 3× SVG, w 440, stacked right (dark panel) | `#F5FFFD` |
+| 16 | `template-13` | 654×300, gap 24 | 96 | 22 fixed (uppercase) | 1× SVG, w 550, right | `#40C1AC` |
+| 17 | `template-14` | 655×300, gap 32 | 96 (white) | 20 fixed (uppercase) | 1× SVG, w 550, left (dark panel) | `#F5FFFD` |
+| 18 | `template-15` | 663×258 (dark) | 83 (white) | 38 fixed | 1× SVG, w 550, right (dark panel) | `#F5FFFD` |
+| 19 | `template-16` | 647×288 (dark) | 96 (white) | — | 1× SVG, w 550, left (dark panel) | `#F5FFFD` |
+| 20 | `template-17` | 810×400 @ 82 from left+bottom | 96 | — | 2× SVG, w 440, stacked right (48px gap) | `#034638` |
+| 21 | `template-18` | 884×400 @ 48 from left+bottom, gap 24 | 96 (white) | 40 fixed | 2× SVG, w 440, stacked in right light panel (48px gap) | `#034638` |
 
 ## Tech stack
 
