@@ -310,18 +310,14 @@
     <div class="preview-container" id="previewContainer">
       <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe>
     </div>
-    <div class="preview-actions">
-      <button class="btn-download" onclick="downloadPNG()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12L3 7h3V1h4v6h3L8 12zm-6 2h12v2H2v-2z"/></svg>
-        Download PNG
-      </button>
-    </div>
+    <div class="preview-actions" id="previewActions"></div>
   </div>
 
   <!-- Right: Controls -->
   <div class="controls-panel">
     <div class="controls-header">
       <div class="controls-title"><span>●</span> Banner Maker</div>
+      <div id="authStatus" style="font-size:12px;color:var(--muted);"></div>
     </div>
 
     <!-- Template Selector -->
@@ -387,6 +383,7 @@ const FIELD_CONFIG = {
 let currentTemplate = TEMPLATES[0];
 let currentValues = {};
 let debounceTimer = null;
+let authState = { user: null, signInEnabled: false, approvalEnabled: false };
 
 // Init
 function init() {
@@ -399,6 +396,68 @@ function init() {
     const sel = document.getElementById('templateSelector');
     if (!sel.contains(e.target)) closeDropdown();
   });
+  refreshAuth();
+}
+
+async function refreshAuth() {
+  try {
+    const resp = await fetch('/me');
+    authState = await resp.json();
+  } catch (_) {
+    authState = { user: null, signInEnabled: false, approvalEnabled: false };
+  }
+  renderAuthStatus();
+  renderActions();
+}
+
+function renderAuthStatus() {
+  const el = document.getElementById('authStatus');
+  if (!el) return;
+  if (authState.user) {
+    el.innerHTML = `${authState.user.name} · <a href="/auth/logout" style="color:var(--muted);">Sign out</a>`;
+  } else {
+    el.textContent = '';
+  }
+}
+
+function renderActions() {
+  const el = document.getElementById('previewActions');
+  if (!el) return;
+  if (!authState.signInEnabled) {
+    // Sign-in not configured (dev) — allow direct download as a fallback.
+    el.innerHTML = `<button class="btn-download" onclick="downloadPNG()">Download PNG</button>`;
+    return;
+  }
+  if (!authState.user) {
+    el.innerHTML = `<a class="btn-download" href="/auth/slack" style="text-decoration:none;">Sign in with Slack</a>`;
+    return;
+  }
+  el.innerHTML = `
+    <button class="btn-download" id="submitBtn" onclick="submitForApproval()">Submit for approval</button>
+    <span id="submitStatus" style="margin-left:12px;font-size:13px;color:var(--muted);align-self:center;"></span>
+  `;
+}
+
+async function submitForApproval() {
+  const btn = document.getElementById('submitBtn');
+  const status = document.getElementById('submitStatus');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+  if (status) status.textContent = '';
+  const { logoSvg: _ignored, ...rest } = currentValues;
+  try {
+    const resp = await fetch('/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ templateId: currentTemplate.id, ...rest }),
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) throw new Error(data.error || 'submit failed');
+    if (status) status.textContent = 'Sent for approval ✓';
+  } catch (err) {
+    if (status) status.textContent = 'Error: ' + err.message;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit for approval'; }
+  }
 }
 
 function buildDropdown() {

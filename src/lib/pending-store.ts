@@ -24,19 +24,19 @@ export function pngPath(id: string): string {
 
 export interface SaveArgs {
   requester: string;
-  slackHandle: string;
+  slackUserId: string;
   templateId: string;
   params: BannerParams;
   pngBuffer: Buffer;
 }
 
-export function saveRequest({ requester, slackHandle, templateId, params, pngBuffer }: SaveArgs): PendingRequest {
+export function saveRequest({ requester, slackUserId, templateId, params, pngBuffer }: SaveArgs): PendingRequest {
   const id = newId();
   fs.writeFileSync(pngPath(id), pngBuffer);
   const record: PendingRequest = {
     id,
     requester: String(requester || '').trim(),
-    slackHandle: String(slackHandle || '').trim().replace(/^@/, ''),
+    slackUserId: String(slackUserId || '').trim(),
     templateId,
     params,
     pngFile: `${id}.png`,

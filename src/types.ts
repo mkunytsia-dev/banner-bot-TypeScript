@@ -51,8 +51,8 @@ export type TemplateRegistry = Record<string, Template>;
 /** A pending approval request. */
 export interface PendingRequest {
   id: string;
-  requester: string;
-  slackHandle: string;
+  requester: string;       // display name
+  slackUserId: string;     // Slack user ID (from OAuth) — used to @mention/DM
   templateId: string;
   params: BannerParams;
   pngFile: string;
