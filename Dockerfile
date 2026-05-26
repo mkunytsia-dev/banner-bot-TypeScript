@@ -35,16 +35,16 @@ ENV PUPPETEER_SKIP_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Install dependencies first (better Docker layer caching).
+# Install ALL dependencies first (we need devDeps to compile TS).
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci
 
-# Then copy the rest of the source.
+# Then copy the rest of the source and compile.
 COPY . .
+RUN npm run build && npm prune --omit=dev
 
-# Pre-create writable dirs (output/, output/logo-previews/) and hand them to
-# the unprivileged `node` user.
-RUN mkdir -p /app/output/logo-previews \
+# Pre-create writable dirs and hand them to the unprivileged `node` user.
+RUN mkdir -p /app/output/logo-previews /app/assets/pending \
  && chown -R node:node /app
 
 USER node
@@ -54,4 +54,4 @@ EXPOSE 3000
 
 # Use tini as PID 1 so Chromium subprocesses get reaped on shutdown.
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["npm", "run", "web"]
+CMD ["node", "dist/web-server.js"]

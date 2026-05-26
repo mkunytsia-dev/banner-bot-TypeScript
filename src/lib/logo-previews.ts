@@ -1,16 +1,9 @@
 /**
- * Logo preview utility.
- *
- * Slack image blocks accept only PNG/JPG/GIF — not SVG. Most of our partner
- * logos are SVG, so we lazily rasterize them to PNG previews on first request
- * and cache results on disk.
- *
- * Output thumbnails are 480x240 with white background (white reads well in
- * both light & dark Slack themes; partner logos are dark-on-transparent).
+ * Logo preview utility — rasterizes SVG partner logos to PNG thumbnails for Slack.
  */
-const path = require('path');
-const fs = require('fs');
-const { getBrowser } = require('../renderer');
+import path from 'path';
+import fs from 'fs';
+import { getBrowser } from '../renderer';
 
 const ASSETS_DIR = path.resolve(__dirname, '../../assets');
 const LOGOS_DIR = path.join(ASSETS_DIR, 'logos');
@@ -19,20 +12,16 @@ const CACHE_DIR = path.resolve(__dirname, '../../output/logo-previews');
 const PREVIEW_W = 480;
 const PREVIEW_H = 240;
 
-function ensureCacheDir() {
+function ensureCacheDir(): void {
   if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
 }
 
-function previewPathFor(logoFilename) {
+function previewPathFor(logoFilename: string): string {
   const base = logoFilename.replace(/\.[^.]+$/, '');
   return path.join(CACHE_DIR, `${base}.png`);
 }
 
-/**
- * Returns the absolute path of a PNG preview for a logo file (creating &
- * caching it if needed). The input filename is relative to assets/logos/.
- */
-async function getLogoPreviewPath(logoFilename) {
+export async function getLogoPreviewPath(logoFilename: string): Promise<string> {
   ensureCacheDir();
   const cachedPath = previewPathFor(logoFilename);
   if (fs.existsSync(cachedPath)) return cachedPath;
@@ -44,18 +33,14 @@ async function getLogoPreviewPath(logoFilename) {
 
   const ext = path.extname(logoFilename).toLowerCase();
 
-  // Raster formats can be served directly. We still copy them into the cache
-  // dir so the static server only has to expose one folder.
   if (['.png', '.jpg', '.jpeg', '.gif'].includes(ext)) {
     fs.copyFileSync(sourcePath, cachedPath);
     return cachedPath;
   }
 
-  // SVG / WebP path: render via Puppeteer, contained inside a 480x240 white box.
   const fileContent = fs.readFileSync(sourcePath);
-  let embed;
+  let embed: string;
   if (ext === '.svg') {
-    // Inline the SVG so CSS sizing applies cleanly.
     embed = `<div style="display:flex;align-items:center;justify-content:center;width:${PREVIEW_W}px;height:${PREVIEW_H}px;">
       <div style="max-width:${PREVIEW_W - 40}px;max-height:${PREVIEW_H - 40}px;display:flex;align-items:center;justify-content:center;">
         ${fileContent.toString('utf8')}
@@ -80,7 +65,7 @@ async function getLogoPreviewPath(logoFilename) {
     await page.setViewport({ width: PREVIEW_W, height: PREVIEW_H, deviceScaleFactor: 1 });
     await page.setContent(html, { waitUntil: 'networkidle0' });
     await page.screenshot({
-      path: cachedPath,
+      path: cachedPath as `${string}.png`,
       type: 'png',
       clip: { x: 0, y: 0, width: PREVIEW_W, height: PREVIEW_H },
     });
@@ -91,18 +76,14 @@ async function getLogoPreviewPath(logoFilename) {
   return cachedPath;
 }
 
-/**
- * Pre-warm the cache for an array of logo filenames. Called once at startup
- * so the first /banner invocation is snappy.
- */
-async function warmLogoPreviews(logoFilenames) {
+export async function warmLogoPreviews(logoFilenames: string[]): Promise<void> {
   for (const f of logoFilenames) {
     try {
       await getLogoPreviewPath(f);
     } catch (err) {
-      console.warn(`[logo-previews] failed to render ${f}: ${err.message}`);
+      console.warn(`[logo-previews] failed to render ${f}: ${(err as Error).message}`);
     }
   }
 }
 
-module.exports = { getLogoPreviewPath, warmLogoPreviews, CACHE_DIR };
+export { CACHE_DIR };

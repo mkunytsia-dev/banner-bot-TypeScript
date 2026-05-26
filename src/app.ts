@@ -1,10 +1,10 @@
-require('dotenv').config();
-const { App } = require('@slack/bolt');
-const { registerSlackHandlers } = require('./slack/interactions');
-const { closeBrowser } = require('./renderer');
-const { startStaticServer, publicBaseUrl } = require('./lib/static-server');
-const { warmLogoPreviews } = require('./lib/logo-previews');
-const { listLogos } = require('./templates/templates');
+import 'dotenv/config';
+import { App } from '@slack/bolt';
+import { registerSlackHandlers } from './slack/interactions';
+import { closeBrowser } from './renderer';
+import { startStaticServer, publicBaseUrl } from './lib/static-server';
+import { warmLogoPreviews } from './lib/logo-previews';
+import { listLogos } from './templates/templates';
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -16,14 +16,10 @@ const app = new App({
 registerSlackHandlers(app);
 
 (async () => {
-  // Static server (template/logo previews) runs on PORT — required so
-  // Slack image blocks can fetch the rendered PNGs.
   startStaticServer();
 
-  // Pre-render PNG previews for all SVG logos so the gallery feels instant
-  // when /banner is invoked. Runs in background — non-fatal if it fails.
   warmLogoPreviews(listLogos()).catch(err => {
-    console.warn('[startup] logo warmup error:', err.message);
+    console.warn('[startup] logo warmup error:', (err as Error).message);
   });
 
   await app.start();
@@ -40,8 +36,7 @@ registerSlackHandlers(app);
   }
 })();
 
-// Graceful shutdown
-async function shutdown() {
+async function shutdown(): Promise<void> {
   await closeBrowser();
   process.exit(0);
 }

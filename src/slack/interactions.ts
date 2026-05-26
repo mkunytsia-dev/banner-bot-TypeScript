@@ -15,15 +15,17 @@
  *                                   who approved.
  */
 
-const fs = require('fs');
-const { TEMPLATES, listLogos } = require('../templates/templates');
-const { PREVIEWS, getPreview } = require('../templates/preview-list');
-const { renderBanner } = require('../renderer');
-const {
+import fs from 'fs';
+import { TEMPLATES, listLogos } from '../templates/templates';
+import { PREVIEWS, getPreview } from '../templates/preview-list';
+import { renderBanner } from '../renderer';
+import {
   publicBaseUrl,
   templatePreviewUrl,
   logoPreviewUrl,
-} = require('../lib/static-server');
+} from '../lib/static-server';
+import type { App } from '@slack/bolt';
+import type { BannerParams } from '../types';
 
 // ---------------------------------------------------------------------------
 // View builders
@@ -31,11 +33,11 @@ const {
 
 const APPROVER_NAME = process.env.APPROVER_NAME || 'Max';
 
-function packMeta(obj) {
+function packMeta(obj: Record<string, unknown>): string {
   return JSON.stringify(obj || {});
 }
 
-function unpackMeta(str) {
+function unpackMeta(str: string | null | undefined): Record<string, any> {
   try {
     return str ? JSON.parse(str) : {};
   } catch (_) {
@@ -47,9 +49,9 @@ function unpackMeta(str) {
  * Step 1 — template gallery.
  * 21 entries × 3 blocks (header section + image + actions) = 63 blocks (limit: 100).
  */
-function buildTemplateGalleryView(meta) {
+function buildTemplateGalleryView(meta: Record<string, any>): any {
   const baseUrl = publicBaseUrl();
-  const blocks = [
+  const blocks: any[] = [
     {
       type: 'section',
       text: {
@@ -117,12 +119,12 @@ function buildTemplateGalleryView(meta) {
  * date inputs (initial values restored from `formState`). At the bottom: a
  * gallery of partner-logo previews with select buttons.
  */
-function buildFormView(meta, formState = {}) {
+function buildFormView(meta: Record<string, any>, formState: Record<string, any> = {}): any {
   const baseUrl = publicBaseUrl();
   const preview = getPreview(meta.previewNum);
   const tplName = preview ? preview.label : `Template ${meta.previewNum}`;
 
-  const blocks = [
+  const blocks: any[] = [
     {
       type: 'section',
       text: {
@@ -295,7 +297,7 @@ function buildFormView(meta, formState = {}) {
  * Pull current input values out of a Slack view payload so we can preserve
  * them across views.update calls.
  */
-function extractFormState(view) {
+function extractFormState(view: any): Record<string, string> {
   const v = view?.state?.values || {};
   return {
     title: v.title_block?.title_input?.value || '',
@@ -309,9 +311,9 @@ function extractFormState(view) {
 // Handlers
 // ---------------------------------------------------------------------------
 
-function registerSlackHandlers(app) {
+function registerSlackHandlers(app: App): void {
   // ── /banner: open Step 1 ───────────────────────────────────────────────
-  app.command('/banner', async ({ ack, body, client }) => {
+  app.command('/banner', async ({ ack, body, client }: any) => {
     await ack();
     const meta = { channelId: body.channel_id || '' };
     await client.views.open({
@@ -321,7 +323,7 @@ function registerSlackHandlers(app) {
   });
 
   // ── Step 1 → Step 2 ────────────────────────────────────────────────────
-  app.action('select_template', async ({ ack, body, client }) => {
+  app.action('select_template', async ({ ack, body, client }: any) => {
     await ack();
     const previewNum = parseInt(body.actions[0].value, 10);
     const meta = unpackMeta(body.view.private_metadata);
@@ -334,7 +336,7 @@ function registerSlackHandlers(app) {
   });
 
   // ── Step 2 → Step 1 ────────────────────────────────────────────────────
-  app.action('back_to_templates', async ({ ack, body, client }) => {
+  app.action('back_to_templates', async ({ ack, body, client }: any) => {
     await ack();
     const meta = unpackMeta(body.view.private_metadata);
     delete meta.previewNum;
@@ -347,7 +349,7 @@ function registerSlackHandlers(app) {
   });
 
   // ── Step 2: pick a partner logo ────────────────────────────────────────
-  app.action('select_logo', async ({ ack, body, client }) => {
+  app.action('select_logo', async ({ ack, body, client }: any) => {
     await ack();
     const logoFile = body.actions[0].value;
     const meta = unpackMeta(body.view.private_metadata);
@@ -361,7 +363,7 @@ function registerSlackHandlers(app) {
   });
 
   // ── Step 2: clear partner logo ─────────────────────────────────────────
-  app.action('clear_logo', async ({ ack, body, client }) => {
+  app.action('clear_logo', async ({ ack, body, client }: any) => {
     await ack();
     const meta = unpackMeta(body.view.private_metadata);
     delete meta.partnerLogo;
@@ -374,7 +376,7 @@ function registerSlackHandlers(app) {
   });
 
   // ── Final submit: render & post ────────────────────────────────────────
-  app.view('banner_submit', async ({ ack, view, client, body }) => {
+  app.view('banner_submit', async ({ ack, view, client, body }: any) => {
     await ack();
 
     const meta = unpackMeta(view.private_metadata);
@@ -484,7 +486,7 @@ function registerSlackHandlers(app) {
         await client.chat.postMessage({
           channel: target,
           thread_ts: parentTs || undefined,
-          text: `:x: Failed to generate banner: ${error.message}`,
+          text: `:x: Failed to generate banner: ${(error as Error).message}`,
         });
       }
     } finally {
@@ -497,7 +499,7 @@ function registerSlackHandlers(app) {
   });
 
   // ── "Approved by Max" button click ─────────────────────────────────────
-  app.action('approve_banner', async ({ ack, body, client }) => {
+  app.action('approve_banner', async ({ ack, body, client }: any) => {
     await ack();
 
     const channel = body.channel?.id || body.container?.channel_id;
@@ -535,4 +537,4 @@ function registerSlackHandlers(app) {
   });
 }
 
-module.exports = { registerSlackHandlers };
+export { registerSlackHandlers };

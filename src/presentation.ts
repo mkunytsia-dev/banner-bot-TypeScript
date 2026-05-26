@@ -1,17 +1,17 @@
-const puppeteer = require('puppeteer');
-const path = require('path');
-const fs = require('fs');
+import puppeteer from 'puppeteer';
+import path from 'path';
+import fs from 'fs';
 
 const FONTS_DIR = path.resolve(__dirname, '../assets/fonts');
 const LOGOS_DIR = path.resolve(__dirname, '../assets/logos');
 const OUTPUT_DIR = path.resolve(__dirname, '../output/presentation');
 
-function fontToBase64(filename) {
+function fontToBase64(filename: string): string {
   const buffer = fs.readFileSync(path.join(FONTS_DIR, filename));
   return buffer.toString('base64');
 }
 
-function imageToBase64(filepath) {
+function imageToBase64(filepath: string): string {
   if (!fs.existsSync(filepath)) return '';
   const buffer = fs.readFileSync(filepath);
   const ext = path.extname(filepath).slice(1).toLowerCase();
@@ -29,7 +29,7 @@ const fonts = {
 const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
 const everstakeLogoDark = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
 
-function baseStyles() {
+function baseStyles(): string {
   return `
     @font-face { font-family: 'ZS'; src: url('data:font/truetype;base64,${fonts.extraLight}') format('truetype'); font-weight: 200; }
     @font-face { font-family: 'ZS'; src: url('data:font/truetype;base64,${fonts.light}') format('truetype'); font-weight: 300; }
@@ -55,7 +55,7 @@ function baseStyles() {
 }
 
 // SLIDE 0: Title
-function slideTitleHTML() {
+function slideTitleHTML(): string {
   return `<!DOCTYPE html><html><head><style>${baseStyles()}</style></head><body>
     <div class="slide dark">
       <div class="blob" style="left:-300px;top:-300px;width:700px;height:700px;background:linear-gradient(180deg,rgba(64,193,172,0.30),rgba(130,230,180,0.8));"></div>
@@ -72,7 +72,7 @@ function slideTitleHTML() {
 }
 
 // SLIDE 1: The Opportunity
-function slide1HTML() {
+function slide1HTML(): string {
   return `<!DOCTYPE html><html><head><style>${baseStyles()}</style></head><body>
     <div class="slide dark">
       <div class="blob" style="left:-200px;top:-200px;width:600px;height:600px;background:linear-gradient(180deg,rgba(64,193,172,0.20),rgba(123,150,144,0.40));"></div>
@@ -100,7 +100,7 @@ function slide1HTML() {
 }
 
 // SLIDE 2: Option 1
-function slide2HTML() {
+function slide2HTML(): string {
   return `<!DOCTYPE html><html><head><style>${baseStyles()}</style></head><body>
     <div class="slide light">
       <div class="blob" style="left:-300px;top:-300px;width:700px;height:700px;background:linear-gradient(180deg,rgba(64,193,172,0.35),rgba(130,230,180,0.7));"></div>
@@ -144,7 +144,7 @@ function slide2HTML() {
 }
 
 // SLIDE 3: Option 2
-function slide3HTML() {
+function slide3HTML(): string {
   return `<!DOCTYPE html><html><head><style>${baseStyles()}</style></head><body>
     <div class="slide dark">
       <div class="blob" style="right:-200px;top:-200px;width:600px;height:600px;background:linear-gradient(180deg,rgba(64,193,172,0.15),rgba(123,150,144,0.30));"></div>
@@ -193,7 +193,7 @@ function slide3HTML() {
 }
 
 // SLIDE 4: Contact
-function slide4HTML() {
+function slide4HTML(): string {
   return `<!DOCTYPE html><html><head><style>${baseStyles()}</style></head><body>
     <div class="slide dark">
       <div class="blob" style="left:50%;top:50%;transform:translate(-50%,-50%);width:800px;height:800px;background:linear-gradient(180deg,rgba(64,193,172,0.15),rgba(130,230,180,0.25));"></div>
@@ -218,7 +218,7 @@ function slide4HTML() {
   </body></html>`;
 }
 
-async function main() {
+async function main(): Promise<void> {
   const slides = [
     { name: 'slide-0-title', html: slideTitleHTML() },
     { name: 'slide-1-opportunity', html: slide1HTML() },
@@ -236,7 +236,7 @@ async function main() {
     await page.evaluate(() => document.fonts.ready);
 
     const pngPath = path.join(OUTPUT_DIR, `${slide.name}.png`);
-    await page.screenshot({ path: pngPath, type: 'png', clip: { x: 0, y: 0, width: 1920, height: 1080 } });
+    await page.screenshot({ path: pngPath as `${string}.png`, type: 'png', clip: { x: 0, y: 0, width: 1920, height: 1080 } });
 
     // Save editable HTML
     const htmlPath = path.join(OUTPUT_DIR, `${slide.name}.html`);

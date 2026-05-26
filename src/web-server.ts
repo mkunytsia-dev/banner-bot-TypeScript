@@ -1,50 +1,48 @@
 /**
  * Web-based Banner Maker server.
- *
- * Serves:
- *   GET /                  → public/index.html (banner maker UI)
- *   GET /previews/*.png    → docs/previews/ (template thumbnails)
- *   GET /render?...        → renders banner HTML (for iframe preview)
- *   GET /render?...&download=1 → renders banner and returns PNG
  */
-require('dotenv').config();
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const url = require('url');
-const { TEMPLATES, recolorSvg, getSvgAspect } = require('./templates/templates');
-const { renderBanner, closeBrowser, rasterizeSvg } = require('./renderer');
+import 'dotenv/config';
+import http, { IncomingMessage, ServerResponse } from 'http';
+import fs from 'fs';
+import path from 'path';
+import url from 'url';
+import crypto from 'crypto';
+import { TEMPLATES, recolorSvg, getSvgAspect } from './templates/templates';
+import { renderBanner, closeBrowser, rasterizeSvg } from './renderer';
+import type { BannerParams } from './types';
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '', 10) || 3000;
 const PUBLIC_DIR = path.resolve(__dirname, '../public');
 const PREVIEWS_DIR = path.resolve(__dirname, '../docs/previews');
 const SVG_CACHE_DIR = path.resolve(__dirname, '../assets/logos/cache');
 if (!fs.existsSync(SVG_CACHE_DIR)) fs.mkdirSync(SVG_CACHE_DIR, { recursive: true });
-const svgStore = new Map(); // id → svg string, in-memory keyed cache
 
-function readBody(req, maxBytes = 1024 * 1024) {
+const svgStore = new Map<string, string>();
+
+function readBody(req: IncomingMessage, maxBytes: number = 1024 * 1024): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = '';
     let bytes = 0;
-    req.on('data', chunk => {
+    req.on('data', (chunk: Buffer) => {
       bytes += chunk.length;
       if (bytes > maxBytes) { req.destroy(); reject(new Error('Body too large')); return; }
-      data += chunk;
+      data += chunk.toString('utf8');
     });
     req.on('end', () => resolve(data));
     req.on('error', reject);
   });
 }
 
-async function handleSvgUpload(req, res) {
+async function handleSvgUpload(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
     const body = await readBody(req);
     if (!body || !/<svg[\s>]/i.test(body)) {
       res.statusCode = 400;
       res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ error: 'Body must contain an <svg> element' }));
+      res.end(JSON.stringify({ error: 'Body must contain an <svg> element' }));
+      return;
     }
-    const id = require('crypto').createHash('sha1').update(body).digest('hex').slice(0, 12);
+    const id = crypto.createHash('sha1').update(body).digest('hex').slice(0, 12);
     svgStore.set(id, body);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -52,11 +50,11 @@ async function handleSvgUpload(req, res) {
   } catch (err) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: err.message }));
+    res.end(JSON.stringify({ error: (err as Error).message }));
   }
 }
 
-function serveFile(res, filepath, contentType) {
+function serveFile(res: ServerResponse, filepath: string, contentType: string): void {
   if (!fs.existsSync(filepath)) {
     res.statusCode = 404;
     res.end('Not Found');
@@ -67,8 +65,18 @@ function serveFile(res, filepath, contentType) {
   fs.createReadStream(filepath).pipe(res);
 }
 
-async function handleRender(res, query) {
-  const templateId = query.templateId;
+interface RasterTemplateConfig {
+  primary: string;
+  secondary: string;
+  baseHeight: number;
+}
+
+const RASTER_TEMPLATES: Record<string, RasterTemplateConfig> = {
+  collaboration: { primary: '#034638', secondary: '#F5FFFD', baseHeight: 80 },
+};
+
+async function handleRender(res: ServerResponse, query: url.UrlWithParsedQuery['query']): Promise<void> {
+  const templateId = String(query.templateId || '');
   const template = TEMPLATES[templateId];
   if (!template) {
     res.statusCode = 400;
@@ -76,34 +84,36 @@ async function handleRender(res, query) {
     return;
   }
 
-  // Build params from query
-  const params = {};
-  const passthrough = ['title', 'subtitle', 'dateRange', 'variant', 'theme',
+  const params: BannerParams = {};
+  const passthrough: Array<keyof BannerParams> = [
+    'title', 'subtitle', 'dateRange', 'variant', 'theme',
     'partnerLogo', 'partnerLogo1', 'partnerLogo2', 'partnerLogo3',
-    'cryptoIcon', 'rightImage', 'partnerHeight'];
+    'cryptoIcon', 'rightImage', 'partnerHeight',
+  ];
   for (const key of passthrough) {
-    if (query[key]) params[key] = query[key];
-  }
-  // Resolve SVG by id (stored via POST /svg). Supports single (svgId) and numbered slots (svgId1, svgId2, …).
-  if (query.svgId && svgStore.has(query.svgId)) {
-    params.logoSvg = svgStore.get(query.svgId);
-  }
-  for (const key of Object.keys(query)) {
-    const m = key.match(/^svgId(\d+)$/);
-    if (m && svgStore.has(query[key])) {
-      params['logoSvg' + m[1]] = svgStore.get(query[key]);
+    const v = query[key];
+    if (typeof v === 'string' && v) {
+      (params as Record<string, string>)[key as string] = v;
     }
   }
 
-  // For templates that benefit from rasterized partner logos (eliminates SVG sizing quirks),
-  // recolor the SVG with template-specific colors, rasterize to PNG, and pass the cached
-  // path as `partnerLogoRaster` so the template can `<img>` it.
-  const RASTER_TEMPLATES = {
-    collaboration: { primary: '#034638', secondary: '#F5FFFD', baseHeight: 80 },
-  };
+  // Resolve SVG by id (POST /svg). Supports svgId and svgId1..N slots.
+  const singleId = typeof query.svgId === 'string' ? query.svgId : '';
+  if (singleId && svgStore.has(singleId)) {
+    params.logoSvg = svgStore.get(singleId);
+  }
+  for (const key of Object.keys(query)) {
+    const m = key.match(/^svgId(\d+)$/);
+    const v = query[key];
+    if (m && typeof v === 'string' && svgStore.has(v)) {
+      (params as Record<string, string>)['logoSvg' + m[1]] = svgStore.get(v) as string;
+    }
+  }
+
+  // Pre-rasterize the partner SVG for templates that need pixel-stable sizing
   if (params.logoSvg && RASTER_TEMPLATES[templateId]) {
     const cfg = RASTER_TEMPLATES[templateId];
-    const requestedH = parseInt(params.partnerHeight, 10);
+    const requestedH = parseInt(params.partnerHeight || '', 10);
     const targetH = Number.isFinite(requestedH) ? Math.max(40, Math.min(300, requestedH)) : cfg.baseHeight;
     const aspect = getSvgAspect(params.logoSvg);
     const targetW = Math.max(1, Math.round(targetH * aspect));
@@ -119,7 +129,6 @@ async function handleRender(res, query) {
   }
 
   if (query.download === '1') {
-    // Render PNG and return as download
     try {
       const outputPath = await renderBanner(templateId, params);
       res.statusCode = 200;
@@ -128,14 +137,13 @@ async function handleRender(res, query) {
       const stream = fs.createReadStream(outputPath);
       stream.pipe(res);
       stream.on('end', () => {
-        try { fs.unlinkSync(outputPath); } catch (_) {}
+        try { fs.unlinkSync(outputPath); } catch (_) { /* noop */ }
       });
     } catch (err) {
       res.statusCode = 500;
-      res.end(`Render error: ${err.message}`);
+      res.end(`Render error: ${(err as Error).message}`);
     }
   } else {
-    // Return HTML for iframe preview
     try {
       const html = template.render(params);
       res.statusCode = 200;
@@ -143,22 +151,20 @@ async function handleRender(res, query) {
       res.end(html);
     } catch (err) {
       res.statusCode = 500;
-      res.end(`Render error: ${err.message}`);
+      res.end(`Render error: ${(err as Error).message}`);
     }
   }
 }
 
-const server = http.createServer(async (req, res) => {
-  const parsed = url.parse(req.url, true);
-  const pathname = parsed.pathname;
+const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
+  const parsed = url.parse(req.url || '/', true);
+  const pathname = parsed.pathname || '/';
 
   try {
-    // Static: index.html
     if (pathname === '/' || pathname === '/index.html') {
       return serveFile(res, path.join(PUBLIC_DIR, 'index.html'), 'text/html');
     }
 
-    // Template previews
     if (pathname.startsWith('/previews/')) {
       const file = pathname.slice('/previews/'.length);
       if (!/^template-\d+\.png$/.test(file)) {
@@ -168,17 +174,14 @@ const server = http.createServer(async (req, res) => {
       return serveFile(res, path.join(PREVIEWS_DIR, file), 'image/png');
     }
 
-    // Render
     if (pathname === '/render') {
       return await handleRender(res, parsed.query);
     }
 
-    // SVG upload (POST) — returns { id } to use as svgId in /render
     if (pathname === '/svg' && req.method === 'POST') {
       return await handleSvgUpload(req, res);
     }
 
-    // Health
     if (pathname === '/healthz') {
       res.statusCode = 200;
       return res.end('ok');

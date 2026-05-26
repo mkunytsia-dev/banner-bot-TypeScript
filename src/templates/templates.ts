@@ -1,17 +1,18 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
+import type { BannerParams, Template, TemplateRegistry } from '../types';
 
 const ASSETS_DIR = path.resolve(__dirname, '../../assets');
 const FONTS_DIR = path.join(ASSETS_DIR, 'fonts');
 const LOGOS_DIR = path.join(ASSETS_DIR, 'logos');
 
-function fontToBase64(filename) {
+function fontToBase64(filename: string): string {
   const filepath = path.join(FONTS_DIR, filename);
   const buffer = fs.readFileSync(filepath);
   return buffer.toString('base64');
 }
 
-function imageToBase64(filepath) {
+function imageToBase64(filepath: string): string {
   if (!fs.existsSync(filepath)) return '';
   const buffer = fs.readFileSync(filepath);
   const ext = path.extname(filepath).slice(1).toLowerCase();
@@ -19,12 +20,12 @@ function imageToBase64(filepath) {
   return `data:${mime};base64,${buffer.toString('base64')}`;
 }
 
-function getEverstakeLogo(theme) {
+function getEverstakeLogo(theme: string | undefined): string {
   const filename = theme === 'dark' ? 'everstake-light.png' : 'everstake-dark.png';
   return imageToBase64(path.join(LOGOS_DIR, filename));
 }
 
-function getPartnerLogo(logoFilename) {
+function getPartnerLogo(logoFilename: string | undefined): string {
   if (!logoFilename) return '';
   const filepath = path.join(LOGOS_DIR, logoFilename);
   return imageToBase64(filepath);
@@ -38,7 +39,7 @@ const fonts = {
   medium: fontToBase64('ZalandoSans-Medium.ttf'),
 };
 
-function baseStyles() {
+function baseStyles(): string {
   return `
     @font-face {
       font-family: 'Zalando Sans';
@@ -81,7 +82,7 @@ function baseStyles() {
 // Max defaults to the title's initial computed font-size; min defaults to 50% of max.
 // Override via data-max-size / data-min-size on the title element.
 // Sets window.__autoFitDone = true when complete (Puppeteer waits on this).
-function autoFitScript() {
+function autoFitScript(): string {
   return `<script>(async function(){
     try { await document.fonts.ready; } catch(_) {}
     function readMax(el){ var v = parseFloat(el.dataset.maxSize); return isNaN(v) ? parseFloat(getComputedStyle(el).fontSize) : v; }
@@ -126,7 +127,7 @@ function autoFitScript() {
   })();</script>`;
 }
 
-function gridOverlay(theme = 'light') {
+function gridOverlay(theme: string = 'light'): string {
   const color = theme === 'dark' ? 'rgba(222,232,230,0.12)' : '#dee8e6';
   // 5 vertical lines + 2 horizontal lines matching Figma grid
   return `
@@ -142,7 +143,9 @@ function gridOverlay(theme = 'light') {
   `;
 }
 
-function gradientBlobs(positions) {
+interface BlobPosition { x: number; y: number; size: number; color: string; }
+
+function gradientBlobs(positions: BlobPosition[]): string {
   return positions.map(({ x, y, size, color }) => `
     <div style="
       position:absolute;
@@ -160,7 +163,7 @@ function gradientBlobs(positions) {
 // TYPE A: Split layout - left text, right partner logo
 // Examples: DES-283 (Monad), DES-286 (Solana), DES-284 (Aptos), DES-301 (Neo)
 // ============================================
-function typeA({ title, subtitle, partnerLogo, theme = 'light' }) {
+function typeA({ title, subtitle, partnerLogo, theme = 'light' }: BannerParams): string {
   const bgColor = theme === 'dark' ? 'linear-gradient(180deg, #034638 75%, #012d24 100%)' : '#f5fffd';
   const textColor = theme === 'dark' ? '#f5fffd' : '#034638';
   const dividerColor = theme === 'dark' ? 'rgba(222,232,230,0.12)' : '#dee8e6';
@@ -204,7 +207,7 @@ function typeA({ title, subtitle, partnerLogo, theme = 'light' }) {
 // TYPE B: Centered title, light background with gradient accents
 // Examples: DES-285, DES-312 (Ethereum)
 // ============================================
-function typeB({ title, subtitle, partnerLogo, theme = 'light' }) {
+function typeB({ title, subtitle, partnerLogo, theme = 'light' }: BannerParams): string {
   const bgColor = theme === 'dark' ? 'linear-gradient(180deg, #034638 75%, #012d24 100%)' : '#f5fffd';
   const textColor = theme === 'dark' ? '#f5fffd' : '#034638';
   const everstakeLogo = getEverstakeLogo(theme);
@@ -237,7 +240,7 @@ function typeB({ title, subtitle, partnerLogo, theme = 'light' }) {
 // TYPE C: Text in center (v1–v4)
 // Figma-exported backgrounds (PNG) + text overlay
 // ============================================
-function typeC({ title, subtitle, variant = 'v1' }) {
+function typeC({ title, subtitle, variant = 'v1' }: BannerParams): string {
   const isLight = variant === 'v2';
   const textColor = isLight ? '#034638' : '#f5fffd';
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, `bg-text-center-${variant}.png`));
@@ -267,16 +270,16 @@ function typeC({ title, subtitle, variant = 'v1' }) {
 //   - fill="none" / "transparent"            → kept as-is (truly invisible)
 //   - white-ish (#fff, white, rgb(255,255,255)) → replaced with `secondary` (background tone)
 //   - anything else                          → replaced with `primary` (ink color)
-function recolorSvg(svgString, primary, secondary) {
+function recolorSvg(svgString: string, primary: string, secondary: string): string {
   let s = String(svgString || '');
-  const classify = (v) => {
+  const classify = (v: string): 'skip' | 'secondary' | 'primary' => {
     const x = String(v).trim().toLowerCase().replace(/\s+/g, '');
     if (x === 'none' || x === 'transparent') return 'skip';
     if (x === 'white' || x === '#fff' || x === '#ffffff' ||
         x === 'rgb(255,255,255)' || x === 'rgba(255,255,255,1)') return 'secondary';
     return 'primary';
   };
-  const pick = (v) => {
+  const pick = (v: string): string | null => {
     const c = classify(v);
     if (c === 'skip') return null;
     return c === 'secondary' ? secondary : primary;
@@ -289,7 +292,7 @@ function recolorSvg(svgString, primary, secondary) {
   return s;
 }
 
-function typeAPR({ title, subtitle, logoSvg }) {
+function typeAPR({ title, subtitle, logoSvg }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-apr.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#40C1AC', '#F5FFFD') : '';
 
@@ -321,7 +324,7 @@ function typeAPR({ title, subtitle, logoSvg }) {
 // TYPE D: Partnership - two logos with "x" between
 // Examples: DES-298 (everstake x Pye)
 // ============================================
-function typeD({ partnerLogo, theme = 'light' }) {
+function typeD({ partnerLogo, theme = 'light' }: BannerParams): string {
   const bgColor = theme === 'dark' ? 'linear-gradient(180deg, #034638 75%, #012d24 100%)' : '#f5fffd';
   const textColor = theme === 'dark' ? '#f5fffd' : '#034638';
   const everstakeLogo = getEverstakeLogo(theme);
@@ -357,7 +360,7 @@ function typeD({ partnerLogo, theme = 'light' }) {
 // ============================================
 // TYPE E: Week in Blockchains
 // ============================================
-function typeE({ dateRange, cryptoIcons = [], theme = 'light' }) {
+function typeE({ dateRange, cryptoIcons = [], theme = 'light' }: BannerParams): string {
   const textColor = '#034638';
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
 
@@ -398,7 +401,7 @@ function typeE({ dateRange, cryptoIcons = [], theme = 'light' }) {
 // TYPE F: Split layout with right illustration/image
 // Examples: DES-294a (Trezor + Cardano visual)
 // ============================================
-function typeF({ title, subtitle, partnerLogo, rightImage, theme = 'light' }) {
+function typeF({ title, subtitle, partnerLogo, rightImage, theme = 'light' }: BannerParams): string {
   const bgColor = theme === 'dark' ? 'linear-gradient(180deg, #034638 75%, #012d24 100%)' : '#f5fffd';
   const textColor = theme === 'dark' ? '#f5fffd' : '#034638';
   const everstakeLogo = getEverstakeLogo(theme);
@@ -450,7 +453,7 @@ function typeF({ title, subtitle, partnerLogo, rightImage, theme = 'light' }) {
 // Template 5: About Blockchain — split layout, text left, partner logo right
 // Figma: DES-283 (about blockchain - v1)
 // ============================================
-function template5({ title, subtitle, logoSvg }) {
+function template5({ title, subtitle, logoSvg }: BannerParams): string {
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#034638', '#F5FFFD') : '';
 
@@ -493,7 +496,7 @@ function template5({ title, subtitle, logoSvg }) {
 // Template 6: About Blockchain v2 — mirror of template-5
 // Partner logo left, text right
 // ============================================
-function template6({ title, subtitle, logoSvg }) {
+function template6({ title, subtitle, logoSvg }: BannerParams): string {
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#034638', '#F5FFFD') : '';
 
@@ -536,7 +539,7 @@ function template6({ title, subtitle, logoSvg }) {
 // Template 7: Dark left panel + partner logo right
 // Figma: DES-301 (Neo N3 Flagship Projects)
 // ============================================
-function template7({ title, subtitle, logoSvg }) {
+function template7({ title, subtitle, logoSvg }: BannerParams): string {
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#034638', '#F5FFFD') : '';
 
@@ -576,7 +579,7 @@ function template7({ title, subtitle, logoSvg }) {
 // Template 8: Text left, dark right panel with partner logo
 // Figma: DES-313 — mirror of template-7
 // ============================================
-function template8({ title, subtitle, logoSvg }) {
+function template8({ title, subtitle, logoSvg }: BannerParams): string {
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
 
@@ -620,7 +623,7 @@ function template8({ title, subtitle, logoSvg }) {
 // Template 9: Centered layout — logo top, title bottom, grid lines
 // Figma: DES-312 (Ethereum Foundation)
 // ============================================
-function template9({ title, logoSvg }) {
+function template9({ title, logoSvg }: BannerParams): string {
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#034638', '#F5FFFD') : '';
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-9.png'));
 
@@ -652,7 +655,7 @@ function template9({ title, logoSvg }) {
 // Template 10: Dark full — everstake logo top-left, title bottom-left, partner logo right (all white)
 // Figma: DES-351
 // ============================================
-function template10({ title, logoSvg }) {
+function template10({ title, logoSvg }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-10.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
@@ -687,7 +690,7 @@ function template10({ title, logoSvg }) {
 // Template 11: Collaboration 3 companies — title left, 3 logos right
 // Figma: Collaboration - 3 company
 // ============================================
-function template11({ title, subtitle, logoSvg1, logoSvg2, logoSvg3 }) {
+function template11({ title, subtitle, logoSvg1, logoSvg2, logoSvg3 }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-11.png'));
   const svg1 = logoSvg1 ? recolorSvg(logoSvg1, '#034638', '#F5FFFD') : '';
   const svg2 = logoSvg2 ? recolorSvg(logoSvg2, '#034638', '#F5FFFD') : '';
@@ -737,7 +740,7 @@ function template11({ title, subtitle, logoSvg1, logoSvg2, logoSvg3 }) {
 // Template 12: Dark Collaboration 3 companies — dark bg, white text left, 3 logos right
 // Figma: Collaboration - 3 company (dark)
 // ============================================
-function template12({ title, subtitle, logoSvg1, logoSvg2, logoSvg3 }) {
+function template12({ title, subtitle, logoSvg1, logoSvg2, logoSvg3 }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-12.png'));
   const svg1 = logoSvg1 ? recolorSvg(logoSvg1, '#F5FFFD', '#034638') : '';
   const svg2 = logoSvg2 ? recolorSvg(logoSvg2, '#F5FFFD', '#034638') : '';
@@ -787,7 +790,7 @@ function template12({ title, subtitle, logoSvg1, logoSvg2, logoSvg3 }) {
 // Template 13: Guide/Tutorial — everstake x partner top, subtitle + title left, crypto icon right
 // Figma: DES-294
 // ============================================
-function template13({ title, subtitle, logoSvg }) {
+function template13({ title, subtitle, logoSvg }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-13.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-dark.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#40C1AC', '#F5FFFD') : '';
@@ -823,7 +826,7 @@ function template13({ title, subtitle, logoSvg }) {
 // Template 14: Dark — partner logo left panel, text right (white)
 // Figma: DES-286 (Solana)
 // ============================================
-function template14({ title, subtitle, logoSvg }) {
+function template14({ title, subtitle, logoSvg }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-14.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
@@ -859,7 +862,7 @@ function template14({ title, subtitle, logoSvg }) {
 // Template 15: Dark — text left, partner icon right panel
 // Figma: DES-322
 // ============================================
-function template15({ title, subtitle, logoSvg }) {
+function template15({ title, subtitle, logoSvg }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-15.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
@@ -897,7 +900,7 @@ function template15({ title, subtitle, logoSvg }) {
 // Template 16: Dark Guide — icon left panel, everstake x partner + title right
 // Figma: DES-286 (Cardano/Trezor)
 // ============================================
-function template16({ title, logoSvg }) {
+function template16({ title, logoSvg }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-14.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-light.png'));
   const recoloredSvg = logoSvg ? recolorSvg(logoSvg, '#F5FFFD', '#034638') : '';
@@ -932,7 +935,7 @@ function template16({ title, logoSvg }) {
 // Template 17: Collaboration 2 companies — title left, 2 logos stacked right
 // Figma: DES-320 (Everstake + Sats Terminal)
 // ============================================
-function template17({ title, logoSvg1, logoSvg2 }) {
+function template17({ title, logoSvg1, logoSvg2 }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-17.png'));
   const svg1 = logoSvg1 ? recolorSvg(logoSvg1, '#034638', '#F5FFFD') : '';
   const svg2 = logoSvg2 ? recolorSvg(logoSvg2, '#034638', '#F5FFFD') : '';
@@ -973,7 +976,7 @@ function template17({ title, logoSvg1, logoSvg2 }) {
 // Center frame: y=325 h=250 (vertically centered in banner)
 // ============================================
 // Parse SVG aspect ratio (width/height) from viewBox, falling back to width/height attrs.
-function getSvgAspect(svgString) {
+function getSvgAspect(svgString: string): number {
   const vb = svgString.match(/viewBox\s*=\s*["']([^"']+)["']/i);
   if (vb) {
     const parts = vb[1].split(/[\s,]+/).map(Number);
@@ -988,7 +991,7 @@ function getSvgAspect(svgString) {
   return 1;
 }
 
-function typeCollaboration({ partnerLogoRaster, partnerLogoRasterW, partnerLogoRasterH }) {
+function typeCollaboration({ partnerLogoRaster, partnerLogoRasterW, partnerLogoRasterH }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-collaboration.png'));
   const everstakeLogo = imageToBase64(path.join(LOGOS_DIR, 'everstake-collab.svg'));
   const everstakeColor = '#034638';
@@ -1016,7 +1019,7 @@ function typeCollaboration({ partnerLogoRaster, partnerLogoRasterW, partnerLogoR
 // Template 18: Wide dark left + 2 logos right (light)
 // Figma: DES-306 variant (Solana/DoubleZero)
 // ============================================
-function template18({ title, subtitle, logoSvg1, logoSvg2 }) {
+function template18({ title, subtitle, logoSvg1, logoSvg2 }: BannerParams): string {
   const bgSrc = imageToBase64(path.join(LOGOS_DIR, 'bg-template-18.png'));
   const svg1 = logoSvg1 ? recolorSvg(logoSvg1, '#034638', '#F5FFFD') : '';
   const svg2 = logoSvg2 ? recolorSvg(logoSvg2, '#034638', '#F5FFFD') : '';
@@ -1053,7 +1056,7 @@ function template18({ title, subtitle, logoSvg1, logoSvg2 }) {
 }
 
 // Template registry
-const TEMPLATES = {
+const TEMPLATES: TemplateRegistry = {
   'type-a': {
     name: 'Brand Article',
     description: 'Split layout: title left, partner logo right',
@@ -1191,7 +1194,7 @@ const TEMPLATES = {
 // Inject auto-fit script before </body> in every rendered banner
 for (const key of Object.keys(TEMPLATES)) {
   const original = TEMPLATES[key].render;
-  TEMPLATES[key].render = (params) => {
+  TEMPLATES[key].render = (params: BannerParams): string => {
     const html = original(params);
     return html.includes('</body>')
       ? html.replace('</body>', autoFitScript() + '</body>')
@@ -1200,9 +1203,9 @@ for (const key of Object.keys(TEMPLATES)) {
 }
 
 // List available partner logos
-function listLogos() {
+function listLogos(): string[] {
   const files = fs.readdirSync(LOGOS_DIR);
   return files.filter(f => !f.startsWith('everstake-') && /\.(png|jpg|jpeg|svg|webp)$/i.test(f));
 }
 
-module.exports = { TEMPLATES, listLogos, getPartnerLogo, getEverstakeLogo, imageToBase64, recolorSvg, getSvgAspect };
+export { TEMPLATES, listLogos, getPartnerLogo, getEverstakeLogo, imageToBase64, recolorSvg, getSvgAspect };
