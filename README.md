@@ -174,8 +174,30 @@ Key behaviors:
 | `GET`  | `/` | UI |
 | `GET`  | `/render?templateId=...&svgId=...&svgId1=...&svgId2=...&svgId3=...` | HTML preview (used by iframe); `&download=1` returns PNG |
 | `POST` | `/svg` | Upload SVG body (`Content-Type: image/svg+xml`); returns `{ id }` |
+| `GET`  | `/me` | Current session `{ user, signInEnabled, approvalEnabled }` |
+| `GET`  | `/auth/slack` → `/auth/slack/callback` | Sign in with Slack (OIDC + PKCE) |
+| `GET`  | `/auth/logout` | Clear session cookie |
+| `POST` | `/submit` | (session-gated) render + queue for approval |
+| `GET`  | `/pending/<id>.png` | Rendered banner for Slack image blocks |
 | `GET`  | `/previews/template-<N>.png` | Template thumbnails |
 | `GET`  | `/healthz` | Liveness |
+
+## Approval flow
+
+The web maker gates output behind a Slack approval workflow so banners are reviewed before they ship.
+
+1. **Sign in with Slack** (OIDC) — `src/lib/slack-oauth.ts`. Uses PKCE + the workspace `team` param (required for non-distributed apps; Team ID auto-resolved via `auth.test`). Session is a signed cookie (`src/lib/session.ts`).
+2. **Submit for approval** — `POST /submit` renders the banner, stores a pending request (`src/lib/pending-store.ts`, file-based under `assets/pending/`), and posts it to `#banner-approvals` with Approve/Reject buttons.
+3. **Approve** — only `APPROVER_USER_ID` may decide. Posts the banner to `#approved-designs`, @mentions + DMs the requester.
+4. **Reject** — opens a modal with a **mandatory reason**, then DMs the requester.
+
+Interactions run over **Socket Mode** (`src/lib/slack-approval.ts`) — no public interactivity webhook needed. If Slack env vars are unset the server still runs (banner building works; approval is disabled and the UI shows a direct Download fallback).
+
+> **Local dev caveat:** "Sign in with Slack" requires an **https** redirect — `http://localhost` is rejected by Slack OIDC (PKCE error). For end-to-end testing use a tunnel (cloudflared/ngrok) or the Railway deploy, and add `<https-origin>/auth/slack/callback` to the app's Redirect URLs.
+
+### Environment
+
+See `.env.example`. Keys: `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN` (Socket Mode), `SLACK_CLIENT_ID` / `SLACK_CLIENT_SECRET` (Sign in with Slack), `SESSION_SECRET` (cookie signing), `SLACK_APPROVAL_CHANNEL`, `SLACK_APPROVED_CHANNEL`, `APPROVER_USER_ID`, `PUBLIC_BASE_URL`. Slack scopes: `chat:write`, `files:write`, `users:read` + OIDC (`openid`, `profile`, `email`).
 
 ### Per-template specs (web maker)
 

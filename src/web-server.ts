@@ -25,7 +25,7 @@ const SVG_CACHE_DIR = path.resolve(__dirname, '../assets/logos/cache');
 if (!fs.existsSync(SVG_CACHE_DIR)) fs.mkdirSync(SVG_CACHE_DIR, { recursive: true });
 
 const svgStore = new Map<string, string>();
-const oauthStates = new Map<string, number>(); // state → expiry ms
+const oauthStates = new Map<string, { exp: number; verifier: string }>(); // state → {expiry, PKCE verifier}
 
 function isSecureContext(): boolean {
   return (oauth.redirectUri()).startsWith('https://');
@@ -177,30 +177,32 @@ function json(res: ServerResponse, status: number, obj: unknown): void {
 
 // ── Auth routes ────────────────────────────────────────────────────────────
 
-function handleAuthStart(res: ServerResponse): void {
+async function handleAuthStart(res: ServerResponse): Promise<void> {
   if (!oauth.isConfigured()) {
     json(res, 503, { error: 'Slack sign-in not configured' });
     return;
   }
   const state = oauth.newState();
-  oauthStates.set(state, Date.now() + 10 * 60 * 1000);
+  const pkce = oauth.newPkce();
+  oauthStates.set(state, { exp: Date.now() + 10 * 60 * 1000, verifier: pkce.verifier });
+  const teamId = await oauth.getTeamId();
   res.statusCode = 302;
-  res.setHeader('Location', oauth.buildAuthorizeUrl(state));
+  res.setHeader('Location', oauth.buildAuthorizeUrl(state, pkce.challenge, teamId));
   res.end();
 }
 
 async function handleAuthCallback(res: ServerResponse, query: url.UrlWithParsedQuery['query']): Promise<void> {
   const code = typeof query.code === 'string' ? query.code : '';
   const state = typeof query.state === 'string' ? query.state : '';
-  const exp = oauthStates.get(state);
+  const entry = oauthStates.get(state);
   oauthStates.delete(state);
-  if (!code || !exp || exp < Date.now()) {
+  if (!code || !entry || entry.exp < Date.now()) {
     res.statusCode = 400;
     res.end('Invalid or expired sign-in attempt. Please try again.');
     return;
   }
   try {
-    const user = await oauth.exchangeCode(code);
+    const user = await oauth.exchangeCode(code, entry.verifier);
     res.statusCode = 302;
     res.setHeader('Set-Cookie', buildSetCookie(user, isSecureContext()));
     res.setHeader('Location', '/');
@@ -257,7 +259,7 @@ const server = http.createServer(async (req: IncomingMessage, res: ServerRespons
     }
 
     // Auth
-    if (pathname === '/auth/slack') return handleAuthStart(res);
+    if (pathname === '/auth/slack') return await handleAuthStart(res);
     if (pathname === '/auth/slack/callback') return await handleAuthCallback(res, parsed.query);
     if (pathname === '/auth/logout') {
       res.statusCode = 302;

@@ -16,6 +16,12 @@ import type { PendingRequest } from '../types';
 
 const APPROVAL_CHANNEL = process.env.SLACK_APPROVAL_CHANNEL || '#banner-approvals';
 const APPROVED_CHANNEL = process.env.SLACK_APPROVED_CHANNEL || '#approved-designs';
+const APPROVER_USER_ID = process.env.APPROVER_USER_ID || '';
+
+/** Returns true if the clicking user is allowed to decide. Empty allow-list = anyone. */
+function canDecide(userId: string): boolean {
+  return !APPROVER_USER_ID || userId === APPROVER_USER_ID;
+}
 
 let app: App | null = null;
 
@@ -87,6 +93,14 @@ function registerHandlers(a: App): void {
   // ── Approve ──────────────────────────────────────────────────────────────
   a.action('approve_request', async ({ ack, body, client }: any) => {
     await ack();
+    if (!canDecide(body.user.id)) {
+      await client.chat.postEphemeral({
+        channel: body.channel?.id || body.container?.channel_id,
+        user: body.user.id,
+        text: ':no_entry: Only the designated approver can approve banners.',
+      }).catch(() => {});
+      return;
+    }
     const id = body.actions[0].value as string;
     const req = loadRequest(id);
     const approver = `<@${body.user.id}>`;
@@ -142,6 +156,14 @@ function registerHandlers(a: App): void {
   // ── Reject → open modal ──────────────────────────────────────────────────
   a.action('reject_request', async ({ ack, body, client }: any) => {
     await ack();
+    if (!canDecide(body.user.id)) {
+      await client.chat.postEphemeral({
+        channel: body.channel?.id || body.container?.channel_id,
+        user: body.user.id,
+        text: ':no_entry: Only the designated approver can reject banners.',
+      }).catch(() => {});
+      return;
+    }
     const id = body.actions[0].value as string;
     const channel = body.channel?.id || body.container?.channel_id;
     const messageTs = body.message?.ts || body.container?.message_ts;
